@@ -15,38 +15,56 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   String _selectedFilter = 'Semua Riwayat';
 
-  void _deleteHistory(int index) {
+  void _deleteHistory(ScreeningRecord record) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             'Hapus Riwayat?',
             style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Apakah Anda yakin ingin menghapus data riwayat skrining ini? Grafik tren akan disesuaikan secara otomatis.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.onSurfaceVariant),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: AppColors.onSurfaceVariant,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Batal', style: GoogleFonts.plusJakartaSans(color: AppColors.onSurfaceVariant)),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.plusJakartaSans(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
             ),
             ElevatedButton(
-              onPressed: () {
-                AppStateService.instance.deleteScreeningRecord(index);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Riwayat skrining dan grafik berhasil diperbarui.')),
-                );
+              onPressed: () async {
+                await AppStateService.instance.deleteScreeningRecordById(record.id);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Riwayat skrining dan grafik berhasil diperbarui.',
+                      ),
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: const Text('Hapus'),
             ),
@@ -85,7 +103,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 // 2. Scrollable Body
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 8.0,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -116,7 +137,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           _buildEmptyState(user)
                         else
                           ...List.generate(screeningHistory.length, (index) {
-                            return _buildHistoryCard(screeningHistory[index], index);
+                            return _buildHistoryCard(
+                              screeningHistory[index],
+                              index,
+                            );
                           }),
                         const SizedBox(height: 24),
                       ],
@@ -151,7 +175,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Semua hasil skrining tersimpan aman sesuai akun Anda.'),
+                  content: Text(
+                    'Semua hasil skrining tersimpan aman sesuai akun Anda.',
+                  ),
                   backgroundColor: AppColors.secondary,
                 ),
               );
@@ -181,13 +207,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          'Catatan riwayat evaluasi kesehatan mental akun (${user.email}).',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: AppColors.onSurfaceVariant,
-          ),
-        ),
+        // Text(
+        //   'Catatan riwayat evaluasi kesehatan mental akun (${user.email}).',
+        //   style: GoogleFonts.plusJakartaSans(
+        //     fontSize: 13,
+        //     color: AppColors.onSurfaceVariant,
+        //   ),
+        // ),
       ],
     );
   }
@@ -208,12 +234,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
               onTap: () => setState(() => _selectedFilter = f),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary : AppColors.surfaceCard,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.4),
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.outlineVariant.withValues(alpha: 0.4),
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -228,7 +259,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+                    color: isSelected
+                        ? Colors.white
+                        : AppColors.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -273,7 +306,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceVariant.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
@@ -298,11 +334,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.show_chart_rounded, size: 40, color: AppColors.outlineVariant),
+                  const Icon(
+                    Icons.show_chart_rounded,
+                    size: 40,
+                    color: AppColors.outlineVariant,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Belum ada data grafik',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.onSurfaceVariant),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -313,7 +356,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
               height: 140,
               width: double.infinity,
               child: CustomPaint(
-                painter: _DynamicMentalHealthTrendPainter(records: chronological),
+                painter: _DynamicMentalHealthTrendPainter(
+                  records: chronological,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -355,12 +400,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.info_outline_rounded, color: AppColors.secondary, size: 20),
+            const Icon(
+              Icons.info_outline_rounded,
+              color: AppColors.secondary,
+              size: 20,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Lakukan skrining pertama untuk memantau grafik kestabilan kesehatan mental Anda.',
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.onSurfaceVariant),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
               ),
             ),
           ],
@@ -378,12 +430,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.stars_rounded, color: AppColors.secondary, size: 22),
+            const Icon(
+              Icons.stars_rounded,
+              color: AppColors.secondary,
+              size: 22,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Skor awal Anda adalah ${first.score}/100 (${first.title}). Lakukan tes berkala untuk melihat grafik tren perkembangan.',
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.onSurfaceVariant),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
               ),
             ),
           ],
@@ -407,45 +466,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
             isImprovement
                 ? Icons.trending_up_rounded
                 : isSame
-                    ? Icons.trending_flat_rounded
-                    : Icons.trending_down_rounded,
+                ? Icons.trending_flat_rounded
+                : Icons.trending_down_rounded,
             color: isImprovement
                 ? AppColors.secondary
                 : isSame
-                    ? AppColors.primary
-                    : AppColors.tertiary,
+                ? AppColors.primary
+                : AppColors.tertiary,
             size: 22,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.onSurfaceVariant),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
                 children: [
                   TextSpan(
                     text: isImprovement
                         ? 'Tingkat kestabilan mentalmu meningkat '
                         : isSame
-                            ? 'Kondisi kesehatan mentalmu terpantau '
-                            : 'Skor kesehatan mentalmu mengalami perubahan ',
+                        ? 'Kondisi kesehatan mentalmu terpantau '
+                        : 'Skor kesehatan mentalmu mengalami perubahan ',
                   ),
                   TextSpan(
                     text: isImprovement
                         ? '+$diff poin'
                         : isSame
-                            ? 'stabil (${chronological.last.score} poin)'
-                            : '$diff poin',
+                        ? 'stabil (${chronological.last.score} poin)'
+                        : '$diff poin',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: isImprovement ? AppColors.secondary : AppColors.primary,
+                      color: isImprovement
+                          ? AppColors.secondary
+                          : AppColors.primary,
                     ),
                   ),
                   TextSpan(
                     text: isImprovement
                         ? ' sejak tes pertama.'
                         : isSame
-                            ? ' dalam evaluasi berkala.'
-                            : '. Jaga istirahat dan luangkan waktu relaksasi.',
+                        ? ' dalam evaluasi berkala.'
+                        : '. Jaga istirahat dan luangkan waktu relaksasi.',
                   ),
                 ],
               ),
@@ -491,8 +555,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Image.network(
                       item.image,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.sentiment_satisfied_rounded, color: AppColors.primary),
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.sentiment_satisfied_rounded,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -510,7 +576,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.onSurfaceVariant),
+                          const Icon(
+                            Icons.calendar_today_rounded,
+                            size: 12,
+                            color: AppColors.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             item.date,
@@ -570,22 +640,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.onSurface,
                     side: const BorderSide(color: AppColors.outline),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   child: Text(
                     'Lihat Detail Hasil',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () => _deleteHistory(index),
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.outline, size: 20),
+                onPressed: () => _deleteHistory(item),
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: AppColors.outline,
+                  size: 20,
+                ),
                 style: IconButton.styleFrom(
                   side: const BorderSide(color: AppColors.outline),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
             ],
@@ -602,7 +683,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
         padding: const EdgeInsets.symmetric(vertical: 32.0),
         child: Column(
           children: [
-            const Icon(Icons.assignment_outlined, size: 48, color: AppColors.outlineVariant),
+            const Icon(
+              Icons.assignment_outlined,
+              size: 48,
+              color: AppColors.outlineVariant,
+            ),
             const SizedBox(height: 10),
             Text(
               'Belum ada riwayat untuk ${user.name}',

@@ -301,27 +301,27 @@ class TipsPolaMakanScreen extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.95,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 0.82,
           children: [
             _buildBentoCard(
               icon: Icons.cookie_outlined,
-              iconBgColor: AppColors.primaryContainer.withOpacity(0.25),
+              iconBgColor: AppColors.primaryContainer.withValues(alpha: 0.25),
               iconColor: AppColors.primary,
               title: 'Dark Chocolate',
               description: 'Kaya magnesium untuk relaksasi otot dan pikiran.',
             ),
             _buildBentoCard(
               icon: Icons.local_cafe,
-              iconBgColor: AppColors.softMint.withOpacity(0.4),
+              iconBgColor: AppColors.softMint.withValues(alpha: 0.4),
               iconColor: AppColors.secondary,
               title: 'Green Tea',
               description: 'L-theanine membantu meningkatkan fokus dan ketenangan.',
             ),
             _buildBentoCard(
               icon: Icons.set_meal,
-              iconBgColor: AppColors.softSunshine.withOpacity(0.4),
+              iconBgColor: AppColors.softSunshine.withValues(alpha: 0.4),
               iconColor: AppColors.tertiary,
               title: 'Ikan Berlemak',
               description: 'Omega-3 sangat penting untuk kesehatan otak jangka panjang.',
@@ -347,7 +347,7 @@ class TipsPolaMakanScreen extends StatelessWidget {
     required String description,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(14.0),
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(20),
@@ -361,7 +361,6 @@ class TipsPolaMakanScreen extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
             width: 40,
@@ -376,27 +375,27 @@ class TipsPolaMakanScreen extends StatelessWidget {
               size: 22,
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.onSurface,
-                ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onSurface,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: Text(
+              description,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                height: 1.35,
+                color: AppColors.onSurfaceVariant,
               ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  height: 1.35,
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),

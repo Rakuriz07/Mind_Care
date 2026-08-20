@@ -148,10 +148,10 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
 
     if (_isAudioPlaying) {
       try {
-        await _audioPlayer.play(AssetSource('audio/pagi_merdu.mp3'));
+        await _audioPlayer.play(AssetSource('audio/segar.mp3'));
       } catch (_) {
         try {
-          await _audioPlayer.play(AssetSource('audio/piano.mp3'));
+          await _audioPlayer.play(AssetSource('audio/senang.mp3'));
         } catch (_) {}
       }
     } else {

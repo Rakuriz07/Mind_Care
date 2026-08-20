@@ -24,18 +24,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _biometricEnabled = true;
 
   final List<Map<String, String>> _availableAvatars = [
-    {
-      'title': 'Karakter Senang ✨',
-      'url': 'assets/images/senang.png',
-    },
-    {
-      'title': 'Karakter Cemas 😟',
-      'url': 'assets/images/cemas.png',
-    },
-    {
-      'title': 'Karakter Sedih 😢',
-      'url': 'assets/images/sedih.png',
-    },
+    {'title': 'Karakter Senang ✨', 'url': 'assets/images/senang.png'},
+    {'title': 'Karakter Cemas 😟', 'url': 'assets/images/cemas.png'},
+    {'title': 'Karakter Sedih 😢', 'url': 'assets/images/sedih.png'},
   ];
 
   Future<bool> _pickImage(ImageSource source) async {
@@ -64,7 +55,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
         if (!mounted) return false;
-        AppStateService.instance.updateAvatarBytes(bytes, File(pickedFile.path));
+        AppStateService.instance.updateAvatarBytes(
+          bytes,
+          File(pickedFile.path),
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Foto profil berhasil diganti dari perangkat! ✨'),
@@ -114,143 +108,178 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.outlineVariant,
-                        borderRadius: BorderRadius.circular(2),
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Ubah Foto Profil',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSurface,
+                    const SizedBox(height: 16),
+                    Text(
+                      'Ubah Foto Profil',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Ambil foto langsung, pilih dari galeri, atau gunakan avatar karakter.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: AppColors.onSurfaceVariant,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Ambil foto langsung, pilih dari galeri, atau gunakan avatar karakter.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-                  // 1. Camera & Gallery Options Row
-                  Row(
-                    children: [
-                      // Camera Button
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final nav = Navigator.of(context);
-                            final success = await _pickImage(ImageSource.camera);
-                            if (success && mounted) {
-                              nav.pop();
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryContainer.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.camera_alt_rounded, color: AppColors.primary, size: 22),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Kamera',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
+                    // 1. Camera & Gallery Options Row
+                    Row(
+                      children: [
+                        // Camera Button
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final nav = Navigator.of(context);
+                              final success = await _pickImage(
+                                ImageSource.camera,
+                              );
+                              if (success && mounted) {
+                                nav.pop();
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryContainer.withValues(
+                                  alpha: 0.3,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.camera_alt_rounded,
                                     color: AppColors.primary,
+                                    size: 22,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Kamera',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
+                        const SizedBox(width: 12),
 
-                      // Gallery Button
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final nav = Navigator.of(context);
-                            final success = await _pickImage(ImageSource.gallery);
-                            if (success && mounted) {
-                              nav.pop();
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.secondaryContainer.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.photo_library_rounded, color: AppColors.secondary, size: 22),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Galeri Foto',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
+                        // Gallery Button
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final nav = Navigator.of(context);
+                              final success = await _pickImage(
+                                ImageSource.gallery,
+                              );
+                              if (success && mounted) {
+                                nav.pop();
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.secondaryContainer.withValues(
+                                  alpha: 0.3,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.secondary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.photo_library_rounded,
                                     color: AppColors.secondary,
+                                    size: 22,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Galeri Foto',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  Text(
-                    'Pilihan Karakter Avatar:',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSurface,
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 20),
 
-                  // Avatar Grid
-                  SizedBox(
-                    height: 150,
-                    child: GridView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.9,
+                    Text(
+                      'Pilihan Karakter Avatar:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
                       ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Avatar Grid
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.68,
+                          ),
                       itemCount: _availableAvatars.length,
                       itemBuilder: (context, index) {
                         final avatar = _availableAvatars[index];
                         final bool isSelected =
-                            AppStateService.instance.userProfile.avatarBytes == null &&
-                            AppStateService.instance.userProfile.avatarFile == null &&
+                            AppStateService
+                                    .instance
+                                    .userProfile
+                                    .avatarBytes ==
+                                null &&
+                            AppStateService.instance.userProfile.avatarFile ==
+                                null &&
                             tempSelected == avatar['url'];
 
                         return GestureDetector(
@@ -260,6 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             });
                           },
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
@@ -267,16 +297,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: isSelected ? AppColors.primary : Colors.transparent,
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : Colors.transparent,
                                     width: 2.5,
                                   ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: AppColors.primary.withValues(alpha: 0.25),
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.25),
                                             blurRadius: 8,
                                             spreadRadius: 2,
-                                          )
+                                          ),
                                         ]
                                       : null,
                                 ),
@@ -287,24 +320,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           width: 48,
                                           height: 48,
                                           fit: BoxFit.contain,
-                                          errorBuilder: (context, error, stackTrace) => Container(
-                                            width: 48,
-                                            height: 48,
-                                            color: AppColors.primaryFixed,
-                                            child: const Icon(Icons.person, color: AppColors.primary),
-                                          ),
+                                          errorBuilder:
+                                              (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) => Container(
+                                                width: 48,
+                                                height: 48,
+                                                color: AppColors.primaryFixed,
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
                                         )
                                       : Image.network(
                                           avatar['url']!,
                                           width: 48,
                                           height: 48,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => Container(
-                                            width: 48,
-                                            height: 48,
-                                            color: AppColors.primaryFixed,
-                                            child: const Icon(Icons.person, color: AppColors.primary),
-                                          ),
+                                          errorBuilder:
+                                              (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) => Container(
+                                                width: 48,
+                                                height: 48,
+                                                color: AppColors.primaryFixed,
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
                                         ),
                                 ),
                               ),
@@ -312,10 +361,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Text(
                                 avatar['title']!,
                                 textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 10,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -323,143 +378,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                       },
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                  // Custom URL Option
-                  TextField(
-                    controller: customUrlController,
-                    decoration: InputDecoration(
-                      hintText: 'Atau tempel URL gambar custom...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.outline),
-                      filled: true,
-                      fillColor: AppColors.surfaceCanvas,
-                      prefixIcon: const Icon(Icons.link_rounded, color: AppColors.primary, size: 20),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Save Avatar Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final customUrl = customUrlController.text.trim();
-                        final finalUrl = customUrl.isNotEmpty ? customUrl : tempSelected;
-                        AppStateService.instance.updateAvatarUrl(finalUrl);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Foto profil berhasil diterapkan! ✨'),
-                            backgroundColor: AppColors.secondary,
+                    // Custom URL Option
+                    TextField(
+                      controller: customUrlController,
+                      decoration: InputDecoration(
+                        hintText: 'Atau tempel URL gambar custom...',
+                        hintStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: AppColors.outline,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.surfaceCanvas,
+                        prefixIcon: const Icon(
+                          Icons.link_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      child: Text(
-                        'Simpan Foto Profil',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-      },
-    );
-  }
+                    const SizedBox(height: 16),
 
-  void _showHistoryModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surfaceCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                    // Save Avatar Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final customUrl = customUrlController.text.trim();
+                          final finalUrl = customUrl.isNotEmpty
+                              ? customUrl
+                              : tempSelected;
+                          AppStateService.instance.updateAvatarUrl(finalUrl);
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Foto profil berhasil diterapkan! ✨',
+                              ),
+                              backgroundColor: AppColors.secondary,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(
+                          'Simpan Foto Profil',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Riwayat Skrining Medis',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.onSurface,
-                ),
-              ),
-              const SizedBox(height: 14),
-              _buildHistoryTile('15 Agustus 2024', 'PHQ-9 (Skrining Depresi)', 'Skor: 3 (Minimal/Normal)', AppColors.softMint, AppColors.secondary),
-              const SizedBox(height: 10),
-              _buildHistoryTile('01 Agustus 2024', 'GAD-7 (Skrining Kecemasan)', 'Skor: 4 (Kecemasan Ringan)', AppColors.softSunshine, AppColors.tertiary),
-              const SizedBox(height: 10),
-              _buildHistoryTile('18 Juli 2024', 'Tes Tingkat Stres Harian', 'Skor: Normal (Terkendali)', AppColors.softPink, AppColors.primary),
-            ],
-          ),
+            );
+          },
         );
       },
-    );
-  }
-
-  Widget _buildHistoryTile(String date, String title, String result, Color badgeBg, Color badgeColor) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCanvas,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-              const SizedBox(height: 2),
-              Text(date, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.onSurfaceVariant)),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: badgeBg.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(result, style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: badgeColor)),
-          ),
-        ],
-      ),
     );
   }
 
@@ -572,8 +568,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 14),
                   SwitchListTile(
-                    title: const Text('Kunci Aplikasi dengan Sidik Jari / Face ID'),
-                    subtitle: const Text('Melindungi catatan jurnal dan hasil skrining Anda.'),
+                    title: const Text(
+                      'Kunci Aplikasi dengan Sidik Jari / Face ID',
+                    ),
+                    subtitle: const Text(
+                      'Melindungi catatan jurnal dan hasil skrining Anda.',
+                    ),
                     value: _biometricEnabled,
                     activeThumbColor: AppColors.secondary,
                     onChanged: (val) {
@@ -624,11 +624,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              _buildHelpTile(Icons.headset_mic_rounded, 'Layanan Darurat Konseling 24 Jam', 'Hubungi Hotline Nasional 119 ext 8'),
+              _buildHelpTile(
+                Icons.headset_mic_rounded,
+                'Layanan Darurat Konseling 24 Jam',
+                'Hubungi Hotline Nasional 119 ext 8',
+              ),
               const SizedBox(height: 10),
-              _buildHelpTile(Icons.help_center_rounded, 'Pusat Bantuan & FAQ', 'Pelajari cara kerja aplikasi dan panduan medis'),
+              _buildHelpTile(
+                Icons.help_center_rounded,
+                'Pusat Bantuan & FAQ',
+                'Pelajari cara kerja aplikasi dan panduan medis',
+              ),
               const SizedBox(height: 10),
-              _buildHelpTile(Icons.mail_outline_rounded, 'Hubungi Tim Pengembang', 'support@mindcare.id'),
+              _buildHelpTile(
+                Icons.mail_outline_rounded,
+                'Hubungi Tim Pengembang',
+                'support@mindcare.id',
+              ),
             ],
           ),
         );
@@ -642,7 +654,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceCanvas,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         children: [
@@ -652,8 +666,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-                Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -668,21 +695,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             'Konfirmasi Keluar',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: AppColors.onSurface),
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.bold,
+              color: AppColors.onSurface,
+            ),
           ),
           content: Text(
             'Apakah Anda yakin ingin keluar dari akun MindCare Anda?',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.onSurfaceVariant),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: AppColors.onSurfaceVariant,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Batal',
-                style: GoogleFonts.plusJakartaSans(color: AppColors.onSurfaceVariant),
+                style: GoogleFonts.plusJakartaSans(
+                  color: AppColors.onSurfaceVariant,
+                ),
               ),
             ),
             ElevatedButton(
@@ -692,7 +729,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
                     (route) => false,
                   );
                 }
@@ -700,7 +739,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text('Keluar'),
             ),
@@ -771,7 +812,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                            color: AppColors.primaryContainer.withValues(
+                              alpha: 0.2,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -819,7 +862,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               onTap: () => setModalState(() => selectedTab = 0),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                                 decoration: BoxDecoration(
                                   color: selectedTab == 0
                                       ? AppColors.surfaceCard
@@ -828,9 +873,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   boxShadow: selectedTab == 0
                                       ? [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.05),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
                                             blurRadius: 6,
-                                          )
+                                          ),
                                         ]
                                       : [],
                                 ),
@@ -867,7 +914,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               onTap: () => setModalState(() => selectedTab = 1),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                                 decoration: BoxDecoration(
                                   color: selectedTab == 1
                                       ? AppColors.surfaceCard
@@ -876,9 +925,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   boxShadow: selectedTab == 1
                                       ? [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.05),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
                                             blurRadius: 6,
-                                          )
+                                          ),
                                         ]
                                       : [],
                                 ),
@@ -931,22 +982,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: GoogleFonts.plusJakartaSans(fontSize: 13),
                         decoration: InputDecoration(
                           hintText: 'Masukkan nama lengkap Anda',
-                          prefixIcon: const Icon(Icons.person_outline_rounded,
-                              color: AppColors.primary, size: 20),
+                          prefixIcon: const Icon(
+                            Icons.person_outline_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
                           filled: true,
                           fillColor: AppColors.surfaceCanvas,
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: AppColors.outlineVariant
-                                    .withValues(alpha: 0.3)),
+                              color: AppColors.outlineVariant.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                const BorderSide(color: AppColors.primary),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -962,11 +1021,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               return;
                             }
 
-                            AppStateService.instance.updateProfile(name: newName);
+                            AppStateService.instance.updateProfile(
+                              name: newName,
+                            );
                             Navigator.pop(modalContext);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Nama lengkap berhasil diubah menjadi "$newName"! ✨'),
+                                content: Text(
+                                  'Nama lengkap berhasil diubah menjadi "$newName"! ✨',
+                                ),
                                 backgroundColor: AppColors.secondary,
                               ),
                             );
@@ -1005,8 +1068,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: GoogleFonts.plusJakartaSans(fontSize: 13),
                         decoration: InputDecoration(
                           hintText: 'Masukkan kata sandi lama',
-                          prefixIcon: const Icon(Icons.lock_outline_rounded,
-                              color: AppColors.primary, size: 20),
+                          prefixIcon: const Icon(
+                            Icons.lock_outline_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
                           suffixIcon: IconButton(
                             icon: Icon(
                               isOldPassVisible
@@ -1016,22 +1082,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: AppColors.outline,
                             ),
                             onPressed: () => setModalState(
-                                () => isOldPassVisible = !isOldPassVisible),
+                              () => isOldPassVisible = !isOldPassVisible,
+                            ),
                           ),
                           filled: true,
                           fillColor: AppColors.surfaceCanvas,
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: AppColors.outlineVariant
-                                    .withValues(alpha: 0.3)),
+                              color: AppColors.outlineVariant.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                const BorderSide(color: AppColors.primary),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -1052,8 +1124,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: GoogleFonts.plusJakartaSans(fontSize: 13),
                         decoration: InputDecoration(
                           hintText: '••••••••',
-                          prefixIcon: const Icon(Icons.key_outlined,
-                              color: AppColors.primary, size: 20),
+                          prefixIcon: const Icon(
+                            Icons.key_outlined,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
                           suffixIcon: IconButton(
                             icon: Icon(
                               isNewPassVisible
@@ -1063,22 +1138,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: AppColors.outline,
                             ),
                             onPressed: () => setModalState(
-                                () => isNewPassVisible = !isNewPassVisible),
+                              () => isNewPassVisible = !isNewPassVisible,
+                            ),
                           ),
                           filled: true,
                           fillColor: AppColors.surfaceCanvas,
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: AppColors.outlineVariant
-                                    .withValues(alpha: 0.3)),
+                              color: AppColors.outlineVariant.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                const BorderSide(color: AppColors.primary),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -1099,8 +1180,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: GoogleFonts.plusJakartaSans(fontSize: 13),
                         decoration: InputDecoration(
                           hintText: '••••••••',
-                          prefixIcon: const Icon(Icons.check_circle_outline_rounded,
-                              color: AppColors.primary, size: 20),
+                          prefixIcon: const Icon(
+                            Icons.check_circle_outline_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
                           suffixIcon: IconButton(
                             icon: Icon(
                               isConfirmPassVisible
@@ -1109,23 +1193,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               size: 18,
                               color: AppColors.outline,
                             ),
-                            onPressed: () => setModalState(() =>
-                                isConfirmPassVisible = !isConfirmPassVisible),
+                            onPressed: () => setModalState(
+                              () =>
+                                  isConfirmPassVisible = !isConfirmPassVisible,
+                            ),
                           ),
                           filled: true,
                           fillColor: AppColors.surfaceCanvas,
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: AppColors.outlineVariant
-                                    .withValues(alpha: 0.3)),
+                              color: AppColors.outlineVariant.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                const BorderSide(color: AppColors.primary),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -1140,20 +1231,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               : () async {
                                   final oldPass = oldPasswordController.text;
                                   final newPass = newPasswordController.text;
-                                  final confirmPass = confirmPasswordController.text;
+                                  final confirmPass =
+                                      confirmPasswordController.text;
 
                                   if (oldPass.isEmpty) {
-                                    _showError('Silakan masukkan kata sandi lama Anda.');
+                                    _showError(
+                                      'Silakan masukkan kata sandi lama Anda.',
+                                    );
                                     return;
                                   }
 
                                   if (newPass.length < 6) {
-                                    _showError('Kata sandi baru minimal 6 karakter.');
+                                    _showError(
+                                      'Kata sandi baru minimal 6 karakter.',
+                                    );
                                     return;
                                   }
 
                                   if (newPass != confirmPass) {
-                                    _showError('Konfirmasi kata sandi baru tidak cocok.');
+                                    _showError(
+                                      'Konfirmasi kata sandi baru tidak cocok.',
+                                    );
                                     return;
                                   }
 
@@ -1161,9 +1259,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                                   final res = await AppStateService.instance
                                       .changePassword(
-                                    oldPassword: oldPass,
-                                    newPassword: newPass,
-                                  );
+                                        oldPassword: oldPass,
+                                        newPassword: newPass,
+                                      );
 
                                   setModalState(() => isLoadingPass = false);
 
@@ -1171,14 +1269,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Navigator.pop(modalContext);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(res['message'] ??
-                                            'Kata sandi berhasil diganti! 🔐'),
+                                        content: Text(
+                                          res['message'] ??
+                                              'Kata sandi berhasil diganti! 🔐',
+                                        ),
                                         backgroundColor: AppColors.secondary,
                                       ),
                                     );
                                   } else {
-                                    _showError(res['message'] ??
-                                        'Gagal mengganti kata sandi.');
+                                    _showError(
+                                      res['message'] ??
+                                          'Gagal mengganti kata sandi.',
+                                    );
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
@@ -1193,7 +1295,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
-                                      color: Colors.white, strokeWidth: 2),
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : Text(
                                   'Perbarui Kata Sandi',
@@ -1231,7 +1335,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // 2. Scrollable Body
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 8.0,
+                    ),
                     child: Column(
                       children: [
                         // Profile Header (Avatar, Name, Edit)
@@ -1294,30 +1401,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fit: BoxFit.cover,
                       )
                     : profile.avatarUrl.startsWith('assets/')
-                        ? Image.asset(
-                            profile.avatarUrl,
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              width: 36,
-                              height: 36,
-                              color: AppColors.primaryFixed,
-                              child: const Icon(Icons.person, color: AppColors.primary, size: 20),
-                            ),
-                          )
-                        : Image.network(
-                            profile.avatarUrl,
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              width: 36,
-                              height: 36,
-                              color: AppColors.primaryFixed,
-                              child: const Icon(Icons.person, color: AppColors.primary, size: 20),
-                            ),
+                    ? Image.asset(
+                        profile.avatarUrl,
+                        width: 36,
+                        height: 36,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 36,
+                          height: 36,
+                          color: AppColors.primaryFixed,
+                          child: const Icon(
+                            Icons.person,
+                            color: AppColors.primary,
+                            size: 20,
                           ),
+                        ),
+                      )
+                    : Image.network(
+                        profile.avatarUrl,
+                        width: 36,
+                        height: 36,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 36,
+                          height: 36,
+                          color: AppColors.primaryFixed,
+                          child: const Icon(
+                            Icons.person,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                        ),
+                      ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -1376,37 +1491,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fit: BoxFit.cover,
                         )
                       : profile.avatarFile != null
-                          ? Image.file(
-                              profile.avatarFile!,
-                              width: 96,
-                              height: 96,
-                              fit: BoxFit.cover,
-                            )
-                          : profile.avatarUrl.startsWith('assets/')
-                              ? Image.asset(
-                                  profile.avatarUrl,
-                                  width: 96,
-                                  height: 96,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    width: 96,
-                                    height: 96,
-                                    color: AppColors.primaryFixed,
-                                    child: const Icon(Icons.person, color: AppColors.primary, size: 48),
-                                  ),
-                                )
-                              : Image.network(
-                                  profile.avatarUrl,
-                                  width: 96,
-                                  height: 96,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    width: 96,
-                                    height: 96,
-                                    color: AppColors.primaryFixed,
-                                    child: const Icon(Icons.person, color: AppColors.primary, size: 48),
-                                  ),
+                      ? Image.file(
+                          profile.avatarFile!,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                        )
+                      : profile.avatarUrl.startsWith('assets/')
+                      ? Image.asset(
+                          profile.avatarUrl,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                width: 96,
+                                height: 96,
+                                color: AppColors.primaryFixed,
+                                child: const Icon(
+                                  Icons.person,
+                                  color: AppColors.primary,
+                                  size: 48,
                                 ),
+                              ),
+                        )
+                      : Image.network(
+                          profile.avatarUrl,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                width: 96,
+                                height: 96,
+                                color: AppColors.primaryFixed,
+                                child: const Icon(
+                                  Icons.person,
+                                  color: AppColors.primary,
+                                  size: 48,
+                                ),
+                              ),
+                        ),
                 ),
               ),
             ),
@@ -1523,10 +1648,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconBg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(height: 10),
@@ -1623,13 +1745,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 'Perkembangan Minggu Ini',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppColors.onSurface,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceCard.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(20),
@@ -1653,7 +1778,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (index < chronological.length) {
                 final rec = chronological[index];
                 final assetPath = _getEmotAssetForScore(rec.score, rec.title);
-                return _buildDayMoodAsset(dayLabel, assetPath, true, rec.score, rec.title);
+                return _buildDayMoodAsset(
+                  dayLabel,
+                  assetPath,
+                  true,
+                  rec.score,
+                  rec.title,
+                );
               } else {
                 return _buildDayMoodAsset(dayLabel, null, false, 0, '');
               }
@@ -1665,7 +1796,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildDayMoodAsset(
-      String day, String? assetPath, bool isCompleted, int score, String title) {
+    String day,
+    String? assetPath,
+    bool isCompleted,
+    int score,
+    String title,
+  ) {
     return Column(
       children: [
         Tooltip(
@@ -1675,7 +1811,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             height: 40,
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isCompleted ? AppColors.surfaceCard : AppColors.surfaceCanvas,
+              color: isCompleted
+                  ? AppColors.surfaceCard
+                  : AppColors.surfaceCanvas,
               shape: BoxShape.circle,
               border: Border.all(
                 color: isCompleted
@@ -1689,7 +1827,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: AppColors.primary.withValues(alpha: 0.08),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
-                      )
+                      ),
                     ]
                   : [],
             ),
@@ -1698,9 +1836,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Image.asset(
                       assetPath,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.sentiment_satisfied_rounded,
-                              size: 20, color: AppColors.primary),
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.sentiment_satisfied_rounded,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
                     ),
                   )
                 : const Center(
@@ -1749,15 +1889,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: 'Ganti nama, kata sandi, & data profil',
             onTap: _showAccountCenterModal,
           ),
-          const Divider(height: 1, indent: 56, endIndent: 16, color: AppColors.surfaceVariant),
-          _buildSettingsTile(
-            icon: Icons.history_rounded,
-            iconColor: AppColors.secondary,
-            title: 'Riwayat Skrining Medis',
-            subtitle: 'Lihat seluruh rekaman hasil tes',
-            onTap: _showHistoryModal,
+
+          const Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: AppColors.surfaceVariant,
           ),
-          const Divider(height: 1, indent: 56, endIndent: 16, color: AppColors.surfaceVariant),
           _buildSettingsTile(
             icon: Icons.notifications_none_rounded,
             iconColor: AppColors.secondary,
@@ -1765,7 +1903,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: 'Pengingat jurnal & meditasi harian',
             onTap: _showNotificationModal,
           ),
-          const Divider(height: 1, indent: 56, endIndent: 16, color: AppColors.surfaceVariant),
+          const Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: AppColors.surfaceVariant,
+          ),
           _buildSettingsTile(
             icon: Icons.fingerprint_rounded,
             iconColor: AppColors.tertiary,
@@ -1773,7 +1916,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: 'Kunci aplikasi dengan sidik jari',
             onTap: _showBiometricModal,
           ),
-          const Divider(height: 1, indent: 56, endIndent: 16, color: AppColors.surfaceVariant),
+          const Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: AppColors.surfaceVariant,
+          ),
           _buildSettingsTile(
             icon: Icons.help_outline_rounded,
             iconColor: AppColors.outline,

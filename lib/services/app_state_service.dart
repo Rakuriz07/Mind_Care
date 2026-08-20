@@ -20,7 +20,7 @@ class AppStateService extends ChangeNotifier {
     email: 'anindya.kirana@example.com',
     phone: '+62 812 3456 7890',
     avatarUrl:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAlWoq5VzxXf-IyO9yzfNOIz49MEs3p-M_-c9pS-DpQcGMD2A2EcCtht6EMIhlRDBKJuEXjgsnALbQtDrvUUGTiPmLnQhb1bKSTxmRZr18_8UTPlkeB4QU2CmMebW7E8NKg5QL_QPwGJrcYh4pdSqfet01IBc2jSSVHB9MhW15GMUVkLxiSE6xhw_y_WHCVGU40-R_SI2kRclQQ39kFxtAMh6IF7sV7yyR-79KZuJYuRw3GkHRbs0Mghw',
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
   );
 
   List<JournalEntry> _journals = [];
@@ -276,18 +276,19 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void deleteScreeningRecord(int index) {
+  Future<void> deleteScreeningRecord(int index) async {
     if (index >= 0 && index < _screeningHistory.length) {
       final record = _screeningHistory[index];
       _screeningHistory.removeAt(index);
-      AppDatabase.instance.deleteScreening(record.id);
+      await AppDatabase.instance.deleteScreening(record.id);
       notifyListeners();
     }
   }
 
-  void deleteScreeningRecordById(String id) {
-    _screeningHistory.removeWhere((item) => item.id == id);
-    AppDatabase.instance.deleteScreening(id);
+  Future<void> deleteScreeningRecordById(String id) async {
+    final cleanId = id.trim().toLowerCase();
+    _screeningHistory.removeWhere((item) => item.id.trim().toLowerCase() == cleanId);
+    await AppDatabase.instance.deleteScreening(id);
     notifyListeners();
   }
 

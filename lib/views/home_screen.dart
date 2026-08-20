@@ -433,54 +433,57 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 12),
 
         // 2 Column Grid
-        Row(
-          children: [
-            // Card 1: Game Relaksasi
-            Expanded(
-              child: _buildRecommendationCard(
-                emoji: '🎮',
-                title: 'Game Relaksasi',
-                subtitle: 'Mini Game Pereda Stres',
-                buttonLabel: 'Mainkan Game',
-                iconData: Icons.sports_esports_rounded,
-                isPrimaryButton: false,
-                buttonBgColor: AppColors.softMint.withOpacity(0.35),
-                buttonTextColor: AppColors.secondary,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const GameRelaksasiScreen(),
-                    ),
-                  );
-                },
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Card 1: Game Relaksasi
+              Expanded(
+                child: _buildRecommendationCard(
+                  emoji: '🎮',
+                  title: 'Game Relaksasi',
+                  subtitle: 'Mini Game Pereda Stres',
+                  buttonLabel: 'Mainkan Game',
+                  iconData: Icons.sports_esports_rounded,
+                  isPrimaryButton: false,
+                  buttonBgColor: AppColors.softMint.withValues(alpha: 0.35),
+                  buttonTextColor: AppColors.secondary,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const GameRelaksasiScreen(),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-            // Card 2: Tips Tidur Nyenyak
-            Expanded(
-              child: _buildRecommendationCard(
-                emoji: '🌙',
-                title: 'Tips Tidur Nyenyak',
-                subtitle: 'Rutinitas Bebas Gadget',
-                buttonLabel: 'Baca Tips',
-                iconData: Icons.menu_book_rounded,
-                isPrimaryButton: true,
-                buttonBgColor: Colors.transparent,
-                buttonTextColor: AppColors.primary,
-                borderColor: AppColors.primary,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TipsTidurNyenyakScreen(),
-                    ),
-                  );
-                },
+              // Card 2: Tips Tidur Nyenyak
+              Expanded(
+                child: _buildRecommendationCard(
+                  emoji: '🌙',
+                  title: 'Tips Tidur Nyenyak',
+                  subtitle: 'Rutinitas Bebas Gadget',
+                  buttonLabel: 'Baca Tips',
+                  iconData: Icons.menu_book_rounded,
+                  isPrimaryButton: true,
+                  buttonBgColor: Colors.transparent,
+                  buttonTextColor: AppColors.primary,
+                  borderColor: AppColors.primary,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TipsTidurNyenyakScreen(),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -513,24 +516,30 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 26)),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.onSurface,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: AppColors.onSurfaceVariant,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 26)),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           SizedBox(

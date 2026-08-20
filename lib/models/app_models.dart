@@ -72,7 +72,7 @@ class UserProfile {
     required this.avatarUrl,
     this.avatarBytes,
     this.avatarFile,
-    this.memberSince = 'Member since Aug 2024',
+    this.memberSince = 'Anggota sejak Agustus 2024',
     this.role = 'patient',
     this.specialization = 'Psikologi Klinis & Terapi Stres',
     this.licenseNumber = 'SIPP. 1984/HIMPSI/2023',

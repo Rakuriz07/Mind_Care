@@ -226,27 +226,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        // Mascot Image / Avatar
+        // App Logo
         Container(
-          width: 88,
-          height: 88,
+          width: 90,
+          height: 90,
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primaryContainer.withValues(alpha: 0.2),
+            color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withValues(alpha: 0.12),
                 blurRadius: 20,
                 spreadRadius: 2,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: ClipOval(
-            child: Image.network(
-              _selectedRole == UserRole.psychologist
-                  ? 'https://images.unsplash.com/photo-1594824813580-496a798b3f4f?auto=format&fit=crop&w=200&q=80'
-                  : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
-              fit: BoxFit.cover,
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => Icon(
                 _selectedRole == UserRole.psychologist ? Icons.medical_services_rounded : Icons.psychology,
                 color: AppColors.primary,

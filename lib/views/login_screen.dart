@@ -29,13 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _quickFillDemo(String email, String password) {
-    setState(() {
-      _emailController.text = email;
-      _passwordController.text = password;
-    });
-  }
-
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -162,10 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Main Form Card Container
                       _buildFormCard(),
-                      const SizedBox(height: 20),
-
-                      // Quick Demo Account Helper
-                      _buildQuickDemoHelper(),
                       const SizedBox(height: 24),
 
                       // Footer Register Link
@@ -185,27 +174,27 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        // Mascot Image / Avatar
+        // App Logo
         Container(
-          width: 88,
-          height: 88,
+          width: 90,
+          height: 90,
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primaryContainer.withValues(alpha: 0.2),
+            color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withValues(alpha: 0.12),
                 blurRadius: 20,
                 spreadRadius: 2,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: ClipOval(
-            child: Image.network(
-              _selectedRole == UserRole.psychologist
-                  ? 'https://images.unsplash.com/photo-1594824813580-496a798b3f4f?auto=format&fit=crop&w=200&q=80'
-                  : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
-              fit: BoxFit.cover,
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => Icon(
                 _selectedRole == UserRole.psychologist ? Icons.medical_services_rounded : Icons.psychology,
                 color: AppColors.primary,
@@ -286,9 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 6),
           _buildTextField(
             controller: _emailController,
-            hintText: _selectedRole == UserRole.psychologist
-                ? 'sarah.doe@clinic.com'
-                : 'anindya.kirana@example.com',
+            hintText: 'nama@email.com',
             icon: Icons.mail_outline_rounded,
             keyboardType: TextInputType.emailAddress,
           ),
@@ -468,81 +455,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // --- Quick Demo Helper Box ---
-  Widget _buildQuickDemoHelper() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.flash_on_rounded, color: AppColors.tertiary, size: 16),
-              const SizedBox(width: 6),
-              Text(
-                'Akun Demo Pengujian Database:',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (_selectedRole == UserRole.user)
-            InkWell(
-              onTap: () => _quickFillDemo('anindya.kirana@example.com', 'password123'),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceCanvas,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'anindya.kirana@example.com (Pass: password123)',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.primary),
-                    ),
-                    const Text('Klik Isi', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.secondary)),
-                  ],
-                ),
-              ),
-            )
-          else
-            InkWell(
-              onTap: () => _quickFillDemo('sarah.doe@clinic.com', 'password123'),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceCanvas,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'sarah.doe@clinic.com (Pass: password123)',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.secondary),
-                    ),
-                    const Text('Klik Isi', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
   // --- Label Helper ---
   Widget _buildLabel(String text) {

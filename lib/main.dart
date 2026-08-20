@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/database/app_database.dart';
-import 'package:mindcare/views/login_screen.dart';
+import 'package:mindcare/views/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +31,7 @@ class MindCareApp extends StatelessWidget {
           Theme.of(context).textTheme,
         ),
       ),
-      home: const LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }

@@ -16,7 +16,7 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
   // Audio Player Instance
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  bool _isPlaying = true;
+  bool _isPlaying = false;
   double _playbackProgress = 0.0;
   int _currentSeconds = 0;
   int _totalSeconds = 600; // 10 minutes default
@@ -61,43 +61,25 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
   ];
   late Map<String, dynamic> _selectedSession;
 
-  // Sound definitions with offline assets & fallback preview URLs
+  // Sound definitions with offline assets (Segar, Senang, Up)
   final List<Map<String, dynamic>> _soundList = [
     {
-      'name': 'Hujan',
-      'icon': Icons.water_drop_rounded,
-      'asset': 'audio/hujan.mp3',
-      'url': 'https://assets.mixkit.co/active_storage/sfx/2515/2515-preview.mp3',
+      'name': 'Segar',
+      'icon': Icons.eco_rounded,
+      'asset': 'audio/segar.mp3',
+      'url': '',
     },
     {
-      'name': 'Hutan',
-      'icon': Icons.forest_rounded,
-      'asset': 'audio/hutan.mp3',
-      'url': 'https://assets.mixkit.co/active_storage/sfx/2437/2437-preview.mp3',
+      'name': 'Senang',
+      'icon': Icons.sentiment_very_satisfied_rounded,
+      'asset': 'audio/senang.mp3',
+      'url': '',
     },
     {
-      'name': 'Ombak',
-      'icon': Icons.water_rounded,
-      'asset': 'audio/ombak.mp3',
-      'url': 'https://assets.mixkit.co/active_storage/sfx/1198/1198-preview.mp3',
-    },
-    {
-      'name': 'Api Unggun',
-      'icon': Icons.local_fire_department_rounded,
-      'asset': 'audio/api.mp3',
-      'url': 'https://assets.mixkit.co/active_storage/sfx/2473/2473-preview.mp3',
-    },
-    {
-      'name': 'Malam',
-      'icon': Icons.nights_stay_rounded,
-      'asset': 'audio/malam.mp3',
-      'url': 'https://assets.mixkit.co/active_storage/sfx/2528/2528-preview.mp3',
-    },
-    {
-      'name': 'Piano Lembut',
-      'icon': Icons.piano_rounded,
-      'asset': 'audio/piano.mp3',
-      'url': 'https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3',
+      'name': 'Up',
+      'icon': Icons.rocket_launch_rounded,
+      'asset': 'audio/up.mp3',
+      'url': '',
     },
   ];
 
@@ -120,7 +102,6 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
       CurvedAnimation(parent: _breathAnimController, curve: Curves.easeInOut),
     );
 
-    _breathAnimController.forward();
     _initAudioPlayer();
   }
 
@@ -128,9 +109,7 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
     try {
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       await _audioPlayer.setVolume(_volume);
-      await _playSelectedSound();
     } catch (_) {}
-    _startPlaybackTimer();
   }
 
   Future<void> _playSelectedSound() async {
@@ -211,11 +190,7 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
     if (_isPlaying) {
       _breathAnimController.forward();
       _startPlaybackTimer();
-      try {
-        await _audioPlayer.resume();
-      } catch (_) {
-        _playSelectedSound();
-      }
+      await _playSelectedSound();
     } else {
       _breathAnimController.stop();
       _playbackTimer?.cancel();
@@ -243,7 +218,9 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
     setState(() {
       _selectedSound = soundName;
     });
-    _playSelectedSound();
+    if (_isPlaying) {
+      _playSelectedSound();
+    }
   }
 
   void _selectTimer(String timerValue) {

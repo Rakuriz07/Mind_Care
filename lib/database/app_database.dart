@@ -76,8 +76,8 @@ class AppDatabase {
         'password': 'password123',
         'phone': '+62 812 3456 7890',
         'avatar_url':
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuAlWoq5VzxXf-IyO9yzfNOIz49MEs3p-M_-c9pS-DpQcGMD2A2EcCtht6EMIhlRDBKJuEXjgsnALbQtDrvUUGTiPmLnQhb1bKSTxmRZr18_8UTPlkeB4QU2CmMebW7E8NKg5QL_QPwGJrcYh4pdSqfet01IBc2jSSVHB9MhW15GMUVkLxiSE6xhw_y_WHCVGU40-R_SI2kRclQQ39kFxtAMh6IF7sV7yyR-79KZuJYuRw3GkHRbs0Mghw',
-        'member_since': 'Member since Aug 2024',
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+        'member_since': 'Anggota sejak Agustus 2024',
         'role': 'patient',
         'created_at': DateTime.now().toIso8601String(),
       },
@@ -89,7 +89,7 @@ class AppDatabase {
         'phone': '+62 813 9876 5432',
         'avatar_url':
             'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-        'member_since': 'Member since Jan 2025',
+        'member_since': 'Anggota sejak Januari 2025',
         'role': 'patient',
         'created_at': DateTime.now().toIso8601String(),
       },
@@ -341,8 +341,8 @@ class AppDatabase {
       'password': password,
       'phone': phone?.trim() ?? '+62 812 3456 7890',
       'avatar_url':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAlWoq5VzxXf-IyO9yzfNOIz49MEs3p-M_-c9pS-DpQcGMD2A2EcCtht6EMIhlRDBKJuEXjgsnALbQtDrvUUGTiPmLnQhb1bKSTxmRZr18_8UTPlkeB4QU2CmMebW7E8NKg5QL_QPwGJrcYh4pdSqfet01IBc2jSSVHB9MhW15GMUVkLxiSE6xhw_y_WHCVGU40-R_SI2kRclQQ39kFxtAMh6IF7sV7yyR-79KZuJYuRw3GkHRbs0Mghw',
-      'member_since': 'Member since ${_getCurrentMonthYear()}',
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      'member_since': 'Anggota sejak ${_getCurrentMonthYear()}',
       'role': 'patient',
       'created_at': DateTime.now().toIso8601String(),
     };
@@ -464,6 +464,7 @@ class AppDatabase {
       'rating': '5.0',
       'total_reviews': 1,
       'role': 'psychologist',
+      'member_since': 'Anggota sejak ${_getCurrentMonthYear()}',
       'created_at': DateTime.now().toIso8601String(),
     };
 
@@ -544,9 +545,9 @@ class AppDatabase {
       email: _activeSession['email'] ?? 'anindya.kirana@example.com',
       phone: _activeSession['phone'] ?? '+62 812 3456 7890',
       avatarUrl: _activeSession['avatar_url'] ??
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAlWoq5VzxXf-IyO9yzfNOIz49MEs3p-M_-c9pS-DpQcGMD2A2EcCtht6EMIhlRDBKJuEXjgsnALbQtDrvUUGTiPmLnQhb1bKSTxmRZr18_8UTPlkeB4QU2CmMebW7E8NKg5QL_QPwGJrcYh4pdSqfet01IBc2jSSVHB9MhW15GMUVkLxiSE6xhw_y_WHCVGU40-R_SI2kRclQQ39kFxtAMh6IF7sV7yyR-79KZuJYuRw3GkHRbs0Mghw',
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
       avatarBytes: avatarBytes,
-      memberSince: _activeSession['member_since'] ?? 'Member since Aug 2024',
+      memberSince: _activeSession['member_since'] ?? 'Anggota sejak ${_getCurrentMonthYear()}',
       role: _activeSession['role'] ?? 'patient',
       specialization: _activeSession['specialization'] ?? 'Psikologi Klinis & Terapi Stres',
       licenseNumber: _activeSession['license_number'] ?? 'SIPP. 1984/HIMPSI/2023',
@@ -749,7 +750,7 @@ class AppDatabase {
 
     return userScreenings.map((map) {
       return ScreeningRecord(
-        id: map['id'] as String,
+        id: (map['id'] ?? '').toString(),
         userEmail: map['user_email'] as String? ?? targetEmail,
         userName: map['user_name'] as String? ?? (_activeSession['name'] ?? ''),
         title: map['title'] as String,
@@ -765,14 +766,14 @@ class AppDatabase {
   Future<void> insertScreening(ScreeningRecord record) async {
     final activeEmail = record.userEmail.isNotEmpty
         ? record.userEmail
-        : (_activeSession['email'] ?? 'anindya.kirana@example.com').toString();
+        : (_activeSession['email'] ?? '').toString();
 
     final activeName = record.userName.isNotEmpty
         ? record.userName
         : (_activeSession['name'] ?? 'Pengguna MindCare').toString();
 
     _screeningsTable.insert(0, {
-      'id': record.id,
+      'id': record.id.toString(),
       'user_email': activeEmail.toLowerCase().trim(),
       'user_name': activeName,
       'title': record.title,
@@ -787,7 +788,8 @@ class AppDatabase {
   }
 
   Future<void> deleteScreening(String id) async {
-    _screeningsTable.removeWhere((item) => item['id'] == id);
+    final cleanId = id.trim().toLowerCase();
+    _screeningsTable.removeWhere((item) => (item['id'] ?? '').toString().trim().toLowerCase() == cleanId);
     await _flush();
   }
 
@@ -810,8 +812,8 @@ class AppDatabase {
   String _getCurrentMonthYear() {
     final now = DateTime.now();
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
     return '${months[now.month - 1]} ${now.year}';
   }
