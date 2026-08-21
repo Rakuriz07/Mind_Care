@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/views/daftar_jurnal_screen.dart';
+import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/kuesioner_screening_screen.dart';
 import 'package:mindcare/views/profile_screen.dart';
 
@@ -454,7 +455,7 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
         } else if (index == 2) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const DaftarJurnalScreen()),
+            MaterialPageRoute(builder: (context) => const HistoryScreen()),
           );
         }
       },

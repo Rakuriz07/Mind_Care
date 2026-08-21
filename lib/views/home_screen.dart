@@ -340,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.network(
-                    'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=300&q=80',
+                    'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=300&q=80',
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
@@ -349,8 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 80,
                       color: AppColors.surfaceVariant,
                       child: const Icon(
-                        Icons.restaurant,
-                        color: AppColors.outline,
+                        Icons.restaurant_rounded,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),

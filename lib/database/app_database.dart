@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/models/app_models.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
@@ -29,8 +30,15 @@ class AppDatabase {
     if (_isInitialized) return;
 
     try {
-      final dir = Directory.current;
-      final dbDir = Directory('${dir.path}/.mindcare_db');
+      Directory dbDir;
+      try {
+        final appDocDir = await getApplicationDocumentsDirectory();
+        dbDir = Directory('${appDocDir.path}/.mindcare_db');
+      } catch (_) {
+        final dir = Directory.current;
+        dbDir = Directory('${dir.path}/.mindcare_db');
+      }
+
       if (!dbDir.existsSync()) {
         dbDir.createSync(recursive: true);
       }
@@ -48,10 +56,8 @@ class AppDatabase {
           _bookingsTable = List<Map<String, dynamic>>.from(dbData['bookings'] ?? []);
           _preferencesTable = Map<String, dynamic>.from(dbData['preferences'] ?? {});
 
-          // Ensure default seed if tables are empty
-          if (_patientsTable.isEmpty || _psychologistsTable.isEmpty) {
-            await _seedDefaultDatabase();
-          }
+          // Merge seeds safely without overwriting registered accounts
+          await _seedDefaultDatabase(mergeOnly: true);
         } else {
           await _seedDefaultDatabase();
         }
@@ -60,15 +66,14 @@ class AppDatabase {
       }
     } catch (e) {
       debugPrint('Database initialization warning: $e');
-      await _seedDefaultDatabase();
+      await _seedDefaultDatabase(mergeOnly: true);
     }
 
     _isInitialized = true;
   }
 
-  Future<void> _seedDefaultDatabase() async {
-    // 1. Separate Table: Patients / General Users
-    _patientsTable = [
+  Future<void> _seedDefaultDatabase({bool mergeOnly = false}) async {
+    final defaultPatients = [
       {
         'id': 'usr_1',
         'name': 'Anindya Kirana',
@@ -95,8 +100,7 @@ class AppDatabase {
       },
     ];
 
-    // 2. Separate Table: Psychologists / Therapists
-    _psychologistsTable = [
+    final defaultPsychologists = [
       {
         'id': 'psy_1',
         'name': 'Dr. Sarah Doe, M.Psi',
@@ -137,8 +141,30 @@ class AppDatabase {
       },
     ];
 
-    // 3. Active default session (Patient)
-    _activeSession = Map<String, dynamic>.from(_patientsTable.first);
+    if (_patientsTable.isEmpty) {
+      _patientsTable = List<Map<String, dynamic>>.from(defaultPatients);
+    } else {
+      for (var dp in defaultPatients) {
+        if (!_patientsTable.any((p) => p['email'] == dp['email'])) {
+          _patientsTable.add(dp);
+        }
+      }
+    }
+
+    if (_psychologistsTable.isEmpty) {
+      _psychologistsTable = List<Map<String, dynamic>>.from(defaultPsychologists);
+    } else {
+      for (var dp in defaultPsychologists) {
+        if (!_psychologistsTable.any((p) => p['email'] == dp['email'])) {
+          _psychologistsTable.add(dp);
+        }
+      }
+    }
+
+    // 3. Active default session (Patient) if none
+    if (_activeSession.isEmpty && _patientsTable.isNotEmpty) {
+      _activeSession = Map<String, dynamic>.from(_patientsTable.first);
+    }
 
     // 4. Seed Journals with User Ownership
     _journalsTable = [
@@ -280,6 +306,24 @@ class AppDatabase {
 
   Future<void> _flush() async {
     try {
+      if (_dbFile == null) {
+        try {
+          final appDocDir = await getApplicationDocumentsDirectory();
+          final dbDir = Directory('${appDocDir.path}/.mindcare_db');
+          if (!dbDir.existsSync()) {
+            dbDir.createSync(recursive: true);
+          }
+          _dbFile = File('${dbDir.path}/mindcare_database.json');
+        } catch (_) {
+          final dir = Directory.current;
+          final dbDir = Directory('${dir.path}/.mindcare_db');
+          if (!dbDir.existsSync()) {
+            dbDir.createSync(recursive: true);
+          }
+          _dbFile = File('${dbDir.path}/mindcare_database.json');
+        }
+      }
+
       if (_dbFile != null) {
         final data = {
           'patients': _patientsTable,

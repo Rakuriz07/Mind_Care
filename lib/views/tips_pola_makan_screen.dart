@@ -212,25 +212,32 @@ class TipsPolaMakanScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Mascot Avatar Image
+          // Gut-Brain Nutrition Image
           Container(
             width: 72,
             height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.softPink,
+                color: AppColors.softMint,
                 width: 2.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: ClipOval(
               child: Image.network(
-                'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+                'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=300&q=80',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  color: AppColors.softPink.withOpacity(0.3),
+                  color: AppColors.softMint.withValues(alpha: 0.4),
                   child: const Icon(
-                    Icons.face_retouching_natural,
+                    Icons.psychology_alt_rounded,
                     color: AppColors.primary,
                     size: 36,
                   ),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/views/daftar_jurnal_screen.dart';
 import 'package:mindcare/views/game_relaksasi_screen.dart';
+import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/meditasi_tidur_screen.dart';
 import 'package:mindcare/views/tips_tidur_nyenyak_screen.dart';
 
@@ -453,7 +454,7 @@ class HasilSkriningScreen extends StatelessWidget {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const DaftarJurnalScreen()),
+                MaterialPageRoute(builder: (context) => const HistoryScreen()),
               );
             },
             style: ElevatedButton.styleFrom(
