@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
-import 'package:mindcare/views/daftar_jurnal_screen.dart';
 import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/kuesioner_screening_screen.dart';
 import 'package:mindcare/views/profile_screen.dart';
@@ -14,8 +13,6 @@ class ScreeningScreen extends StatefulWidget {
 }
 
 class _ScreeningScreenState extends State<ScreeningScreen> {
-  final int _selectedNavIndex = 1; // 1 = Screening active
-
   void _showInfoModal() {
     showModalBottomSheet(
       context: context,
@@ -67,7 +64,11 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.privacy_tip_outlined, color: AppColors.tertiary, size: 20),
+                    const Icon(
+                      Icons.privacy_tip_outlined,
+                      color: AppColors.tertiary,
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -90,7 +91,9 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Saya Mengerti'),
                 ),
@@ -115,7 +118,10 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
             // 2. Scrollable Body
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 12.0,
+                ),
                 child: Column(
                   children: [
                     // Hero Mascot & Header
@@ -157,7 +163,9 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
                   );
                 },
                 child: Image.asset(
@@ -165,8 +173,11 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
                   width: 40,
                   height: 40,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.psychology, color: AppColors.primary, size: 36),
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.psychology,
+                    color: AppColors.primary,
+                    size: 36,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -231,7 +242,7 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
         color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.primaryContainer.withOpacity(0.4),
+          color: AppColors.primaryContainer.withValues(alpha: 0.4),
           width: 2,
         ),
         boxShadow: const [
@@ -247,7 +258,11 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.assignment_outlined, color: AppColors.primary, size: 24),
+              const Icon(
+                Icons.assignment_outlined,
+                color: AppColors.primary,
+                size: 24,
+              ),
               const SizedBox(width: 8),
               Text(
                 'KUESIONER KESEHATAN MENTAL',
@@ -260,11 +275,23 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildInfoItem(Icons.timer_outlined, 'Estimasi Waktu:', '5 - 8 Menit'),
+          _buildInfoItem(
+            Icons.timer_outlined,
+            'Estimasi Waktu:',
+            '5 - 8 Menit',
+          ),
           const SizedBox(height: 10),
-          _buildInfoItem(Icons.list_alt_rounded, 'Jumlah Soal:', '20 Pertanyaan Komprehensif'),
+          _buildInfoItem(
+            Icons.list_alt_rounded,
+            'Jumlah Soal:',
+            '20 Pertanyaan Komprehensif',
+          ),
           const SizedBox(height: 10),
-          _buildInfoItem(Icons.lock_outline_rounded, 'Privasi:', '100% Terenkripsi & Rahasia'),
+          _buildInfoItem(
+            Icons.lock_outline_rounded,
+            'Privasi:',
+            '100% Terenkripsi & Rahasia',
+          ),
           const SizedBox(height: 16),
           Text(
             'Tes ini membantumu mengenali kondisi emosi, beban pikiran, dan kesejahteraan mental secara mandiri.',
@@ -281,14 +308,16 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const KuesionerScreeningScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const KuesionerScreeningScreen(),
+                  ),
                 );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryContainer,
                 foregroundColor: AppColors.onPrimaryContainer,
                 elevation: 3,
-                shadowColor: AppColors.primaryContainer.withOpacity(0.4),
+                shadowColor: AppColors.primaryContainer.withValues(alpha: 0.4),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -321,7 +350,10 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
               color: AppColors.onSurfaceVariant,
             ),
             children: [
-              TextSpan(text: '$label ', style: const TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                text: '$label ',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               TextSpan(text: value),
             ],
           ),
@@ -350,7 +382,11 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline_rounded, color: AppColors.tertiary, size: 22),
+              const Icon(
+                Icons.lightbulb_outline_rounded,
+                color: AppColors.tertiary,
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Petunjuk Pengisian:',
@@ -365,7 +401,10 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
           const SizedBox(height: 12),
           _buildGuidelineStep('1.', 'Cari tempat yang tenang dan nyaman.'),
           const SizedBox(height: 8),
-          _buildGuidelineStep('2.', 'Jawab secara jujur sesuai yang kamu rasakan akhir-akhir ini.'),
+          _buildGuidelineStep(
+            '2.',
+            'Jawab secara jujur sesuai yang kamu rasakan akhir-akhir ini.',
+          ),
           const SizedBox(height: 8),
           _buildGuidelineStep('3.', 'Tidak ada jawaban benar atau salah.'),
         ],
@@ -405,7 +444,11 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.outline),
+        const Icon(
+          Icons.warning_amber_rounded,
+          size: 16,
+          color: AppColors.outline,
+        ),
         const SizedBox(width: 6),
         Text(
           'Skrining mandiri ini bukan pengganti diagnosis medis.',
@@ -415,80 +458,6 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  // --- Bottom Navigation Bar ---
-  Widget _buildBottomNavBar() {
-    return Container(
-      height: 72,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCard.withOpacity(0.95),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(45, 49, 66, 0.08),
-            blurRadius: 20,
-            offset: Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(0, Icons.home_rounded, 'Home'),
-          _buildNavItem(1, Icons.fact_check_rounded, 'Screening'),
-          _buildNavItem(2, Icons.history_rounded, 'History'),
-          _buildNavItem(3, Icons.psychology_outlined, 'Psychologist'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final bool isSelected = _selectedNavIndex == index;
-
-    return InkWell(
-      onTap: () {
-        if (index == 0) {
-          Navigator.pop(context);
-        } else if (index == 2) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HistoryScreen()),
-          );
-        }
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: isSelected
-            ? BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              )
-            : null,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 22,
-              color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

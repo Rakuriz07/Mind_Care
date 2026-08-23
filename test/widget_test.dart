@@ -15,6 +15,7 @@ void main() {
     await tester.pumpWidget(const MindCareApp());
 
     // Verify that the title is present.
-    expect(find.text('MindCare'), findsNothing); // Or verify top level widget
+    expect(find.text('MindCare'), findsWidgets);
+    await tester.pump(const Duration(seconds: 4));
   });
 }

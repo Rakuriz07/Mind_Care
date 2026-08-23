@@ -48,7 +48,10 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
             // 2. Scrollable Body Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -83,10 +86,10 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCanvas.withOpacity(0.95),
+        color: AppColors.surfaceCanvas.withValues(alpha: 0.95),
         border: Border(
           bottom: BorderSide(
-            color: AppColors.surfaceVariant.withOpacity(0.5),
+            color: AppColors.surfaceVariant.withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -138,8 +141,8 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryContainer.withOpacity(0.15),
-            AppColors.softMint.withOpacity(0.15),
+            AppColors.primaryContainer.withValues(alpha: 0.15),
+            AppColors.softMint.withValues(alpha: 0.15),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -229,13 +232,13 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isChecked 
-                        ? Colors.white.withOpacity(0.9)
+                    color: isChecked
+                        ? Colors.white.withValues(alpha: 0.9)
                         : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isChecked 
-                          ? AppColors.primary.withOpacity(0.3)
+                      color: isChecked
+                          ? AppColors.primary.withValues(alpha: 0.3)
                           : Colors.white,
                       width: 1,
                     ),
@@ -272,19 +275,19 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: isChecked 
-                                ? AppColors.onSurface.withOpacity(0.5) 
+                            color: isChecked
+                                ? AppColors.onSurface.withValues(alpha: 0.5)
                                 : AppColors.onSurface,
-                            decoration: isChecked 
-                                ? TextDecoration.lineThrough 
+                            decoration: isChecked
+                                ? TextDecoration.lineThrough
                                 : TextDecoration.none,
                           ),
                         ),
                       ),
                       Icon(
                         item['icon'],
-                        color: isChecked 
-                            ? AppColors.primary.withOpacity(0.4) 
+                        color: isChecked
+                            ? AppColors.primary.withValues(alpha: 0.4)
                             : AppColors.outlineVariant,
                         size: 22,
                       ),
@@ -320,7 +323,7 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
               title: 'Atur Suhu Ruangan',
               subtitle: '18-22°C ideal untuk tidur nyenyak.',
               icon: Icons.thermostat_rounded,
-              iconBgColor: AppColors.softMint.withOpacity(0.2),
+              iconBgColor: AppColors.softMint.withValues(alpha: 0.2),
               iconColor: AppColors.secondary,
             ),
             const SizedBox(height: 12),
@@ -330,7 +333,7 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
               title: 'Jadwal Konsisten',
               subtitle: 'Bangun dan tidur di jam yang sama.',
               icon: Icons.schedule_rounded,
-              iconBgColor: AppColors.softSunshine.withOpacity(0.3),
+              iconBgColor: AppColors.softSunshine.withValues(alpha: 0.3),
               iconColor: AppColors.tertiary,
             ),
             const SizedBox(height: 12),
@@ -338,9 +341,10 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
             // Tip 3: Batasi Kafein
             _buildTipCard(
               title: 'Batasi Kafein',
-              subtitle: 'Hindari kopi setelah jam 2 siang agar tidak mengganggu hormon kantuk.',
+              subtitle:
+                  'Hindari kopi setelah jam 2 siang agar tidak mengganggu hormon kantuk.',
               icon: Icons.no_drinks_rounded,
-              iconBgColor: AppColors.error.withOpacity(0.1),
+              iconBgColor: AppColors.error.withValues(alpha: 0.1),
               iconColor: AppColors.error,
             ),
           ],
@@ -362,7 +366,7 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.surfaceVariant.withOpacity(0.5),
+          color: AppColors.surfaceVariant.withValues(alpha: 0.5),
           width: 1,
         ),
         boxShadow: const [
@@ -382,11 +386,7 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
               color: iconBgColor,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 20,
-            ),
+            child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -435,16 +435,13 @@ class _TipsTidurNyenyakScreenState extends State<TipsTidurNyenyakScreen> {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 2,
-          shadowColor: AppColors.primary.withOpacity(0.3),
+          shadowColor: AppColors.primary.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
         ),
-        icon: const Icon(
-          Icons.headphones_rounded,
-          size: 18,
-        ),
+        icon: const Icon(Icons.headphones_rounded, size: 18),
         label: Text(
           'Mulai Meditasi Tidur',
           style: GoogleFonts.plusJakartaSans(

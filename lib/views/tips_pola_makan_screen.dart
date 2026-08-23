@@ -18,7 +18,10 @@ class TipsPolaMakanScreen extends StatelessWidget {
             // 2. Scrollable Body Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -57,10 +60,10 @@ class TipsPolaMakanScreen extends StatelessWidget {
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCanvas.withOpacity(0.9),
+        color: AppColors.surfaceCanvas.withValues(alpha: 0.9),
         border: Border(
           bottom: BorderSide(
-            color: AppColors.surfaceVariant.withOpacity(0.5),
+            color: AppColors.surfaceVariant.withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -112,8 +115,8 @@ class TipsPolaMakanScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryContainer.withOpacity(0.3),
-            AppColors.softMint.withOpacity(0.3),
+            AppColors.primaryContainer.withValues(alpha: 0.3),
+            AppColors.softMint.withValues(alpha: 0.3),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -138,7 +141,7 @@ class TipsPolaMakanScreen extends StatelessWidget {
                   'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
-                    color: AppColors.primaryContainer.withOpacity(0.2),
+                    color: AppColors.primaryContainer.withValues(alpha: 0.2),
                   ),
                 ),
               ),
@@ -153,9 +156,12 @@ class TipsPolaMakanScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceCard.withOpacity(0.85),
+                    color: AppColors.surfaceCard.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -218,10 +224,7 @@ class TipsPolaMakanScreen extends StatelessWidget {
             height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.softMint,
-                width: 2.5,
-              ),
+              border: Border.all(color: AppColors.softMint, width: 2.5),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primary.withValues(alpha: 0.1),
@@ -285,11 +288,7 @@ class TipsPolaMakanScreen extends StatelessWidget {
         // Title Row
         Row(
           children: [
-            const Icon(
-              Icons.favorite,
-              color: AppColors.softPink,
-              size: 22,
-            ),
+            const Icon(Icons.favorite, color: AppColors.softPink, size: 22),
             const SizedBox(width: 8),
             Text(
               'Makanan Pereda Stres',
@@ -324,21 +323,24 @@ class TipsPolaMakanScreen extends StatelessWidget {
               iconBgColor: AppColors.softMint.withValues(alpha: 0.4),
               iconColor: AppColors.secondary,
               title: 'Green Tea',
-              description: 'L-theanine membantu meningkatkan fokus dan ketenangan.',
+              description:
+                  'L-theanine membantu meningkatkan fokus dan ketenangan.',
             ),
             _buildBentoCard(
               icon: Icons.set_meal,
               iconBgColor: AppColors.softSunshine.withValues(alpha: 0.4),
               iconColor: AppColors.tertiary,
               title: 'Ikan Berlemak',
-              description: 'Omega-3 sangat penting untuk kesehatan otak jangka panjang.',
+              description:
+                  'Omega-3 sangat penting untuk kesehatan otak jangka panjang.',
             ),
             _buildBentoCard(
               icon: Icons.blender,
               iconBgColor: AppColors.surfaceContainerHigh,
               iconColor: AppColors.onSurfaceVariant,
               title: 'Makanan Fermentasi',
-              description: 'Probiotik untuk mendukung poros usus-otak yang sehat.',
+              description:
+                  'Probiotik untuk mendukung poros usus-otak yang sehat.',
             ),
           ],
         ),
@@ -376,11 +378,7 @@ class TipsPolaMakanScreen extends StatelessWidget {
               color: iconBgColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 22,
-            ),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(height: 12),
           Text(
@@ -414,10 +412,10 @@ class TipsPolaMakanScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: AppColors.softMint.withOpacity(0.2),
+        color: AppColors.softMint.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.softMint.withOpacity(0.5),
+          color: AppColors.softMint.withValues(alpha: 0.5),
           width: 1.5,
         ),
         boxShadow: const [
@@ -487,19 +485,12 @@ class TipsPolaMakanScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: AppColors.surfaceVariant,
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.surfaceVariant, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.check_circle,
-            color: iconColor,
-            size: 16,
-          ),
+          Icon(Icons.check_circle, color: iconColor, size: 16),
           const SizedBox(width: 6),
           Text(
             label,
@@ -553,27 +544,27 @@ class TipsPolaMakanScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _buildMindfulListItem(
             icon: Icons.restaurant,
-            text: 'Makanlah dengan perlahan, nikmati setiap gigitan dan tekstur makanan.',
+            text:
+                'Makanlah dengan perlahan, nikmati setiap gigitan dan tekstur makanan.',
           ),
           const SizedBox(height: 14),
           _buildMindfulListItem(
             icon: Icons.phone_disabled,
-            text: 'Hindari distraksi seperti ponsel atau TV saat sedang bersantap.',
+            text:
+                'Hindari distraksi seperti ponsel atau TV saat sedang bersantap.',
           ),
           const SizedBox(height: 14),
           _buildMindfulListItem(
             icon: Icons.psychology,
-            text: 'Dengarkan isyarat lapar dan kenyang dari tubuh Anda dengan penuh perhatian.',
+            text:
+                'Dengarkan isyarat lapar dan kenyang dari tubuh Anda dengan penuh perhatian.',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMindfulListItem({
-    required IconData icon,
-    required String text,
-  }) {
+  Widget _buildMindfulListItem({required IconData icon, required String text}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -581,14 +572,10 @@ class TipsPolaMakanScreen extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer.withOpacity(0.2),
+            color: AppColors.primaryContainer.withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 15,
-          ),
+          child: Icon(icon, color: AppColors.primary, size: 15),
         ),
         const SizedBox(width: 12),
         Expanded(

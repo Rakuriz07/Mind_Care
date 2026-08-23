@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
+import 'package:mindcare/services/app_state_service.dart';
 
 class MeditasiTidurScreen extends StatefulWidget {
   const MeditasiTidurScreen({super.key});
@@ -27,7 +28,8 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
 
   // Breathing 4-7-8 Phase State
   int _breathTimerSeconds = 0;
-  String _breathPhase = 'Tarik Napas'; // 'Tarik Napas' (4s), 'Tahan' (7s), 'Hembuskan' (8s)
+  String _breathPhase =
+      'Tarik Napas'; // 'Tarik Napas' (4s), 'Tahan' (7s), 'Hembuskan' (8s)
   int _breathCycleCount = 1;
   late AnimationController _breathAnimController;
   late Animation<double> _breathScaleAnimation;
@@ -154,6 +156,7 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
           _audioPlayer.pause();
           _breathAnimController.stop();
           timer.cancel();
+          AppStateService.instance.incrementMeditation();
           _showSessionCompletedDialog();
         }
 
@@ -161,16 +164,20 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
         _breathTimerSeconds++;
         if (_breathTimerSeconds <= 4) {
           _breathPhase = 'Tarik Napas (Hidung)';
-          if (!_breathAnimController.isAnimating && _breathAnimController.status != AnimationStatus.forward) {
+          if (!_breathAnimController.isAnimating &&
+              _breathAnimController.status != AnimationStatus.forward) {
             _breathAnimController.duration = const Duration(seconds: 4);
             _breathAnimController.forward(from: 0.0);
           }
-        } else if (_breathTimerSeconds <= 11) { // 4 + 7 = 11s
+        } else if (_breathTimerSeconds <= 11) {
+          // 4 + 7 = 11s
           _breathPhase = 'Tahan Napas';
           _breathAnimController.stop();
-        } else if (_breathTimerSeconds <= 19) { // 11 + 8 = 19s
+        } else if (_breathTimerSeconds <= 19) {
+          // 11 + 8 = 19s
           _breathPhase = 'Hembuskan (Mulut)';
-          if (!_breathAnimController.isAnimating && _breathAnimController.status != AnimationStatus.reverse) {
+          if (!_breathAnimController.isAnimating &&
+              _breathAnimController.status != AnimationStatus.reverse) {
             _breathAnimController.duration = const Duration(seconds: 8);
             _breathAnimController.reverse(from: 1.0);
           }
@@ -288,23 +295,33 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
               const SizedBox(height: 16),
               ...List.generate(_sessionList.length, (index) {
                 final session = _sessionList[index];
-                final isSelected = _selectedSession['title'] == session['title'];
+                final isSelected =
+                    _selectedSession['title'] == session['title'];
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.softMint.withOpacity(0.15) : Colors.white.withOpacity(0.05),
+                    color: isSelected
+                        ? AppColors.softMint.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected ? AppColors.softMint : Colors.white12,
                     ),
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     leading: CircleAvatar(
-                      backgroundColor: isSelected ? AppColors.softMint : Colors.white10,
+                      backgroundColor: isSelected
+                          ? AppColors.softMint
+                          : Colors.white10,
                       child: Icon(
                         Icons.self_improvement_rounded,
-                        color: isSelected ? AppColors.onSecondaryContainer : Colors.white70,
+                        color: isSelected
+                            ? AppColors.onSecondaryContainer
+                            : Colors.white70,
                       ),
                     ),
                     title: Text(
@@ -323,7 +340,10 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                       ),
                     ),
                     trailing: isSelected
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.softMint)
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.softMint,
+                          )
                         : null,
                     onTap: () {
                       setState(() {
@@ -351,7 +371,9 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
       builder: (context) {
         return Dialog(
           backgroundColor: const Color(0xFF1E1B4B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -399,7 +421,9 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white30),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text('Ulangi Sesi'),
                       ),
@@ -414,7 +438,9 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text('Tidur Sekarang'),
                       ),
@@ -466,7 +492,10 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
               // 2. Scrollable Body
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 8.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -502,11 +531,7 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
         children: [
           IconButton(
             onPressed: () => Navigator.maybePop(context),
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-              size: 24,
-            ),
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
             splashRadius: 24,
           ),
           Text(
@@ -529,15 +554,21 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                   duration: const Duration(seconds: 1),
                   backgroundColor: const Color(0xFF312E81),
                   content: Text(
-                    _isNightDimmerActive ? 'Mode Redup Aktif 🌙' : 'Mode Standar 💡',
+                    _isNightDimmerActive
+                        ? 'Mode Redup Aktif 🌙'
+                        : 'Mode Standar 💡',
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
               );
             },
             icon: Icon(
-              _isNightDimmerActive ? Icons.bedtime_rounded : Icons.bedtime_outlined,
-              color: _isNightDimmerActive ? AppColors.softSunshine : Colors.white70,
+              _isNightDimmerActive
+                  ? Icons.bedtime_rounded
+                  : Icons.bedtime_outlined,
+              color: _isNightDimmerActive
+                  ? AppColors.softSunshine
+                  : Colors.white70,
             ),
           ),
         ],
@@ -565,10 +596,10 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                     height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.softMint.withOpacity(0.12),
+                      color: AppColors.softMint.withValues(alpha: 0.12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.softMint.withOpacity(0.2),
+                          color: AppColors.softMint.withValues(alpha: 0.2),
                           blurRadius: 36,
                           spreadRadius: 16,
                         ),
@@ -610,7 +641,11 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.expand_more_rounded, size: 16, color: AppColors.softMint),
+                const Icon(
+                  Icons.expand_more_rounded,
+                  size: 16,
+                  color: AppColors.softMint,
+                ),
               ],
             ),
           ],
@@ -624,10 +659,10 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
         boxShadow: const [
@@ -673,10 +708,14 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 4,
                   activeTrackColor: AppColors.softMint,
-                  inactiveTrackColor: Colors.white.withOpacity(0.2),
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
                   thumbColor: Colors.white,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 6,
+                  ),
+                  overlayShape: const RoundSliderOverlayShape(
+                    overlayRadius: 14,
+                  ),
                 ),
                 child: Slider(
                   value: _playbackProgress.clamp(0.0, 1.0),
@@ -763,7 +802,9 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
               IconButton(
                 onPressed: _toggleMute,
                 icon: Icon(
-                  _isMuted || _volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                  _isMuted || _volume == 0
+                      ? Icons.volume_off_rounded
+                      : Icons.volume_up_rounded,
                   color: Colors.white70,
                   size: 20,
                 ),
@@ -775,7 +816,9 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                     activeTrackColor: AppColors.softPink,
                     inactiveTrackColor: Colors.white24,
                     thumbColor: Colors.white,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 4,
+                    ),
                   ),
                   child: Slider(
                     value: _isMuted ? 0.0 : _volume,
@@ -826,7 +869,7 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                       height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.softMint.withOpacity(0.18),
+                        color: AppColors.softMint.withValues(alpha: 0.18),
                       ),
                     ),
                   ),
@@ -838,7 +881,7 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
                       height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.softMint.withOpacity(0.35),
+                        color: AppColors.softMint.withValues(alpha: 0.35),
                       ),
                     ),
                   ),
@@ -963,10 +1006,14 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.softMint : Colors.white.withOpacity(0.08),
+          color: isSelected
+              ? AppColors.softMint
+              : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.1),
+            color: isSelected
+                ? Colors.transparent
+                : Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -984,7 +1031,9 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.onSecondaryContainer : Colors.white,
+                color: isSelected
+                    ? AppColors.onSecondaryContainer
+                    : Colors.white,
               ),
             ),
           ],
@@ -1002,10 +1051,14 @@ class _MeditasiTidurScreenState extends State<MeditasiTidurScreen>
         padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.softPink : Colors.white.withOpacity(0.08),
+          color: isSelected
+              ? AppColors.softPink
+              : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.1),
+            color: isSelected
+                ? Colors.transparent
+                : Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),

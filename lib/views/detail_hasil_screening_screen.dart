@@ -22,7 +22,8 @@ class DetailHasilScreeningScreen extends StatefulWidget {
       _DetailHasilScreeningScreenState();
 }
 
-class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen> {
+class _DetailHasilScreeningScreenState
+    extends State<DetailHasilScreeningScreen> {
   bool _showAllAnswers = false;
 
   final List<Map<String, dynamic>> _answerBreakdowns = [
@@ -80,7 +81,10 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
             // 2. Scrollable Body
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 8.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -119,7 +123,11 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
         children: [
           IconButton(
             onPressed: () => Navigator.maybePop(context),
-            icon: const Icon(Icons.arrow_back, color: AppColors.primary, size: 22),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: AppColors.primary,
+              size: 22,
+            ),
           ),
           Text(
             'Detail Hasil',
@@ -143,7 +151,9 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color.fromRGBO(45, 49, 66, 0.05),
@@ -168,7 +178,9 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                     value: widget.score / 100.0,
                     strokeWidth: 8,
                     backgroundColor: AppColors.surfaceVariant,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.softMint),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.softMint,
+                    ),
                   ),
                 ),
                 ClipOval(
@@ -211,7 +223,7 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.secondaryContainer.withOpacity(0.4),
+              color: AppColors.secondaryContainer.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -261,7 +273,9 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
             decoration: BoxDecoration(
               color: AppColors.surfaceCard,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.surfaceVariant.withOpacity(0.8)),
+              border: Border.all(
+                color: AppColors.surfaceVariant.withValues(alpha: 0.8),
+              ),
               boxShadow: const [
                 BoxShadow(
                   color: Color.fromRGBO(45, 49, 66, 0.03),
@@ -276,10 +290,14 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: (item['bg'] as Color).withOpacity(0.4),
+                    color: (item['bg'] as Color).withValues(alpha: 0.4),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(item['icon'] as IconData, color: item['color'] as Color, size: 20),
+                  child: Icon(
+                    item['icon'] as IconData,
+                    color: item['color'] as Color,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -297,11 +315,18 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                       ),
                       const SizedBox(height: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.surfaceCanvas,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3)),
+                          border: Border.all(
+                            color: AppColors.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
                         ),
                         child: Text(
                           item['answer'],
@@ -362,7 +387,9 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const GameRelaksasiScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const GameRelaksasiScreen(),
+                    ),
                   );
                 },
                 child: Container(
@@ -371,8 +398,8 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                     borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.softPink.withOpacity(0.25),
-                        AppColors.softMint.withOpacity(0.25),
+                        AppColors.softPink.withValues(alpha: 0.25),
+                        AppColors.softMint.withValues(alpha: 0.25),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -396,7 +423,11 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.sports_esports_rounded, color: AppColors.primary, size: 22),
+                        child: const Icon(
+                          Icons.sports_esports_rounded,
+                          color: AppColors.primary,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -428,7 +459,9 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const TipsPolaMakanScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const TipsPolaMakanScreen(),
+                    ),
                   );
                 },
                 child: Container(
@@ -437,8 +470,8 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                     borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.softSunshine.withOpacity(0.25),
-                        AppColors.softMint.withOpacity(0.25),
+                        AppColors.softSunshine.withValues(alpha: 0.25),
+                        AppColors.softMint.withValues(alpha: 0.25),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -462,7 +495,11 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.restaurant_menu_rounded, color: AppColors.secondary, size: 22),
+                        child: const Icon(
+                          Icons.restaurant_menu_rounded,
+                          color: AppColors.secondary,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -503,14 +540,16 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const TulisJurnalScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const TulisJurnalScreen(),
+                ),
               );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               elevation: 3,
-              shadowColor: AppColors.primary.withOpacity(0.3),
+              shadowColor: AppColors.primary.withValues(alpha: 0.3),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -534,7 +573,11 @@ class _DetailHasilScreeningScreenState extends State<DetailHasilScreeningScreen>
           child: OutlinedButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Laporan hasil skrining berhasil diunduh dalam format PDF.')),
+                const SnackBar(
+                  content: Text(
+                    'Laporan hasil skrining berhasil diunduh dalam format PDF.',
+                  ),
+                ),
               );
             },
             style: OutlinedButton.styleFrom(

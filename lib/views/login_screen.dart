@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/services/app_state_service.dart';
 import 'package:mindcare/views/main_navigation_screen.dart';
-import 'package:mindcare/views/psychologist_dashboard_screen.dart';
 import 'package:mindcare/views/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,8 +13,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  UserRole _selectedRole = UserRole.user;
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -45,54 +42,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    if (_selectedRole == UserRole.psychologist) {
-      final res = await AppStateService.instance.loginPsychologist(
-        email: email,
-        password: password,
+    final res = await AppStateService.instance.loginPatient(
+      email: email,
+      password: password,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+
+    if (res['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res['message'] ?? 'Berhasil masuk ke MindCare ✨'),
+          backgroundColor: AppColors.secondary,
+        ),
       );
-
-      setState(() => _isLoading = false);
-
-      if (!mounted) return;
-
-      if (res['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(res['message'] ?? 'Berhasil masuk sebagai Psikolog ✨'),
-            backgroundColor: AppColors.secondary,
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const PsychologistDashboardScreen()),
-        );
-      } else {
-        _showError(res['message'] ?? 'Gagal masuk. Periksa email & kata sandi.');
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+      );
     } else {
-      final res = await AppStateService.instance.loginPatient(
-        email: email,
-        password: password,
-      );
-
-      setState(() => _isLoading = false);
-
-      if (!mounted) return;
-
-      if (res['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(res['message'] ?? 'Berhasil masuk ke MindCare ✨'),
-            backgroundColor: AppColors.secondary,
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-        );
-      } else {
-        _showError(res['message'] ?? 'Gagal masuk. Periksa email & kata sandi.');
-      }
+      _showError(res['message'] ?? 'Gagal masuk. Periksa email & kata sandi.');
     }
   }
 
@@ -175,41 +146,22 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       children: [
         // App Logo
-        Container(
-          width: 90,
-          height: 90,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                blurRadius: 20,
-                spreadRadius: 2,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/logo.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                _selectedRole == UserRole.psychologist ? Icons.medical_services_rounded : Icons.psychology,
-                color: AppColors.primary,
-                size: 44,
-              ),
-            ),
+        Image.asset(
+          'assets/images/logo.png',
+          width: 200,
+          height: 200,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.psychology,
+            color: AppColors.primary,
+            size: 140,
           ),
         ),
         const SizedBox(height: 16),
 
         // Title
         Text(
-          _selectedRole == UserRole.psychologist
-              ? 'Portal Masuk Psikolog'
-              : 'Selamat Datang Kembali',
+          'Selamat Datang Kembali',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 24,
@@ -221,9 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Subtitle
         Text(
-          _selectedRole == UserRole.psychologist
-              ? 'Masuk untuk mengelola jadwal konsultasi dan rekam medis pasien.'
-              : 'Masuk ke akun Anda untuk melanjutkan perjalanan kesehatan mental.',
+          'Masuk ke akun Anda untuk melanjutkan perjalanan kesehatan mental.',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
@@ -257,19 +207,6 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Role Selection Section
-          Text(
-            'Pilih Tipe Masuk',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildRoleSelector(),
-          const SizedBox(height: 20),
-
           // Email Input
           _buildLabel('Alamat Email'),
           const SizedBox(height: 6),
@@ -349,9 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          _selectedRole == UserRole.psychologist
-                              ? 'Masuk sebagai Psikolog'
-                              : 'Masuk ke Akun',
+                          'Masuk ke Akun',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -371,90 +306,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  // --- Role Selector Segment ---
-  Widget _buildRoleSelector() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCanvas,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildRoleCard(
-              role: UserRole.user,
-              label: 'Pengguna',
-              icon: Icons.person_rounded,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _buildRoleCard(
-              role: UserRole.psychologist,
-              label: 'Psikolog',
-              icon: Icons.medical_services_rounded,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoleCard({
-    required UserRole role,
-    required String label,
-    required IconData icon,
-  }) {
-    final isSelected = _selectedRole == role;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedRole = role;
-          _emailController.clear();
-          _passwordController.clear();
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.surfaceCard : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: isSelected
-              ? [
-                  const BoxShadow(
-                    color: Color.fromRGBO(45, 49, 66, 0.08),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ]
-              : [],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isSelected ? AppColors.primary : AppColors.outline,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.outline,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
 
   // --- Label Helper ---
   Widget _buildLabel(String text) {

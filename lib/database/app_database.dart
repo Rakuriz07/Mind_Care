@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -15,14 +16,29 @@ class AppDatabase {
   File? _dbFile;
   bool _isInitialized = false;
 
+  final StreamController<List<CommunityPost>> _communityStreamController =
+      StreamController<List<CommunityPost>>.broadcast();
+
+  /// Real-Time Stream of Anonymous Community Posts
+  Stream<List<CommunityPost>> get communityPostsStream async* {
+    yield getCommunityPosts();
+    yield* _communityStreamController.stream;
+  }
+
+  void _notifyCommunityChanged() {
+    if (!_communityStreamController.isClosed) {
+      _communityStreamController.add(getCommunityPosts());
+    }
+  }
+
   // In-Memory Separated Tables
   List<Map<String, dynamic>> _patientsTable = [];
-  List<Map<String, dynamic>> _psychologistsTable = [];
   Map<String, dynamic> _activeSession = {};
+
+  List<CommunityPost> _communityPostsTable = [];
 
   List<Map<String, dynamic>> _journalsTable = [];
   List<Map<String, dynamic>> _screeningsTable = [];
-  List<Map<String, dynamic>> _bookingsTable = [];
   Map<String, dynamic> _preferencesTable = {};
 
   /// Initialize local database storage
@@ -49,12 +65,15 @@ class AppDatabase {
         if (content.isNotEmpty) {
           final Map<String, dynamic> dbData = jsonDecode(content);
           _patientsTable = List<Map<String, dynamic>>.from(dbData['patients'] ?? []);
-          _psychologistsTable = List<Map<String, dynamic>>.from(dbData['psychologists'] ?? []);
           _activeSession = Map<String, dynamic>.from(dbData['active_session'] ?? {});
           _journalsTable = List<Map<String, dynamic>>.from(dbData['journals'] ?? []);
           _screeningsTable = List<Map<String, dynamic>>.from(dbData['screenings'] ?? []);
-          _bookingsTable = List<Map<String, dynamic>>.from(dbData['bookings'] ?? []);
           _preferencesTable = Map<String, dynamic>.from(dbData['preferences'] ?? {});
+
+          final rawPosts = dbData['community_posts'] as List? ?? [];
+          _communityPostsTable = rawPosts
+              .map((item) => CommunityPost.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
 
           // Merge seeds safely without overwriting registered accounts
           await _seedDefaultDatabase(mergeOnly: true);
@@ -70,239 +89,45 @@ class AppDatabase {
     }
 
     _isInitialized = true;
+    _patientsTable.removeWhere((p) => p['id'] == 'usr_1' || p['id'] == 'usr_2');
+    _journalsTable.removeWhere((j) => j['id'] == '1' || j['id'] == '2' || j['id'] == '3');
+    _screeningsTable.removeWhere((s) => s['id'] == '1' || s['id'] == '2' || s['id'] == '3');
+    await _flush();
   }
 
   Future<void> _seedDefaultDatabase({bool mergeOnly = false}) async {
-    final defaultPatients = [
-      {
-        'id': 'usr_1',
-        'name': 'Anindya Kirana',
-        'email': 'anindya.kirana@example.com',
-        'password': 'password123',
-        'phone': '+62 812 3456 7890',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-        'member_since': 'Anggota sejak Agustus 2024',
-        'role': 'patient',
-        'created_at': DateTime.now().toIso8601String(),
-      },
-      {
-        'id': 'usr_2',
-        'name': 'Budi Santoso',
-        'email': 'user@mindcare.id',
-        'password': 'password123',
-        'phone': '+62 813 9876 5432',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-        'member_since': 'Anggota sejak Januari 2025',
-        'role': 'patient',
-        'created_at': DateTime.now().toIso8601String(),
-      },
-    ];
+    // Clear any legacy dummy records
+    _patientsTable.removeWhere((p) => p['id'] == 'usr_1' || p['id'] == 'usr_2');
+    _journalsTable.removeWhere((j) => j['id'] == '1' || j['id'] == '2' || j['id'] == '3');
+    _screeningsTable.removeWhere((s) => s['id'] == '1' || s['id'] == '2' || s['id'] == '3');
 
-    final defaultPsychologists = [
-      {
-        'id': 'psy_1',
-        'name': 'Dr. Sarah Doe, M.Psi',
-        'email': 'sarah.doe@clinic.com',
-        'password': 'password123',
-        'phone': '+62 821 7788 9900',
-        'license_number': 'SIPP. 1984/HIMPSI/2023',
-        'experience_years': '5 Tahun',
-        'specialization': 'Psikologi Klinis & Terapi Stres',
-        'hospital_clinic': 'RS Jiwa Menur & MindCare Clinic',
-        'consultation_fee': 'Rp 150.000',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1594824813580-496a798b3f4f?auto=format&fit=crop&w=300&q=80',
-        'is_online_accepting': true,
-        'rating': '4.9',
-        'total_reviews': 98,
-        'role': 'psychologist',
-        'created_at': DateTime.now().toIso8601String(),
-      },
-      {
-        'id': 'psy_2',
-        'name': 'Dr. Hendra Wijaya, Sp.KJ',
-        'email': 'psikolog@mindcare.id',
-        'password': 'password123',
-        'phone': '+62 856 1234 5678',
-        'license_number': 'STR. 4452/IDI/2022',
-        'experience_years': '8 Tahun',
-        'specialization': 'Psikiatri & Manajemen Depresi',
-        'hospital_clinic': 'Klinik Sehat Jiwa',
-        'consultation_fee': 'Rp 200.000',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=300&q=80',
-        'is_online_accepting': true,
-        'rating': '5.0',
-        'total_reviews': 120,
-        'role': 'psychologist',
-        'created_at': DateTime.now().toIso8601String(),
-      },
-    ];
-
-    if (_patientsTable.isEmpty) {
-      _patientsTable = List<Map<String, dynamic>>.from(defaultPatients);
-    } else {
-      for (var dp in defaultPatients) {
-        if (!_patientsTable.any((p) => p['email'] == dp['email'])) {
-          _patientsTable.add(dp);
-        }
-      }
+    // Default Preferences
+    if (!mergeOnly || _preferencesTable.isEmpty) {
+      _preferencesTable = {
+        'morning_reminder': true,
+        'night_reminder': true,
+        'weekly_report': false,
+        'biometric_enabled': true,
+        'meditation_count': 0,
+      };
     }
 
-    if (_psychologistsTable.isEmpty) {
-      _psychologistsTable = List<Map<String, dynamic>>.from(defaultPsychologists);
-    } else {
-      for (var dp in defaultPsychologists) {
-        if (!_psychologistsTable.any((p) => p['email'] == dp['email'])) {
-          _psychologistsTable.add(dp);
-        }
-      }
-    }
-
-    // 3. Active default session (Patient) if none
-    if (_activeSession.isEmpty && _patientsTable.isNotEmpty) {
-      _activeSession = Map<String, dynamic>.from(_patientsTable.first);
-    }
-
-    // 4. Seed Journals with User Ownership
-    _journalsTable = [
-      {
-        'id': '1',
-        'user_email': 'anindya.kirana@example.com',
-        'user_name': 'Anindya Kirana',
-        'title': 'Ketenangan di Tengah Kesibukan',
-        'date': 'Hari ini, 08:30 WIB',
-        'preview':
-            'Hari ini saya mencoba teknik pernapasan 4-7-8 sebelum memulai rapat kerja penting. Rasanya jauh lebih fokus dan tenang...',
-        'mood': 'Tenang',
-        'mood_color': AppColors.secondary.value,
-        'mood_bg': AppColors.secondaryContainer.value,
-        'tags': ['#Mindfulness', '#Kerja', '#Napas'],
-      },
-      {
-        'id': '2',
-        'user_email': 'anindya.kirana@example.com',
-        'user_name': 'Anindya Kirana',
-        'title': 'Refleksi Akhir Pekan',
-        'date': 'Kemarin, 21:15 WIB',
-        'preview':
-            'Menghabiskan waktu berjalan santai di taman kota tanpa gadget. Sangat menyegarkan pikiran setelah sepekan penuh deadline...',
-        'mood': 'Senang',
-        'mood_color': AppColors.primary.value,
-        'mood_bg': AppColors.primaryContainer.value,
-        'tags': ['#SelfCare', '#Healing', '#Nature'],
-      },
-      {
-        'id': '3',
-        'user_email': 'anindya.kirana@example.com',
-        'user_name': 'Anindya Kirana',
-        'title': 'Menghadapi Rasa Cemas',
-        'date': '14 Agu 2026, 19:40 WIB',
-        'preview':
-            'Sempat merasa overwhelmed dengan banyaknya tugas, tapi mendengarkan audio relaksasi malam sangat membantu menurunkan detak jantung...',
-        'mood': 'Cemas',
-        'mood_color': AppColors.tertiary.value,
-        'mood_bg': AppColors.softSunshine.value,
-        'tags': ['#Relaksasi', '#Burnout'],
-      },
-    ];
-
-    // 5. Seed Screenings with User Ownership
-    _screeningsTable = [
-      {
-        'id': '1',
-        'user_email': 'anindya.kirana@example.com',
-        'user_name': 'Anindya Kirana',
-        'title': 'Sangat Baik',
-        'date': 'Hari ini, 08:45 WIB',
-        'score': 85,
-        'color': AppColors.secondary.value,
-        'bg': AppColors.secondaryContainer.value,
-        'image':
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuAD0xZM5CV0Z_4RpRFRQoub2kd51IOVm_WsspJKkZoBRRYRhk8lmLLHhAaksl7E6BdIXPrQ6zGAopmCE71llnm1VD00FOn2HcuUV7GY2K5kdaYRIcMCkdErQWs1yEq9ULH6uE62Rdhf6LipJ-nYPHYE2QcCFR_jX-Z5B_ps_-SMN5BzABSKFp7bTdMT_haqSHxDG3l9u5jmw55ubypNln296gLmoDupZsJvMqSTlLFM9cytzOVz14JL7S56UW10tgRP-VY',
-      },
-      {
-        'id': '2',
-        'user_email': 'anindya.kirana@example.com',
-        'user_name': 'Anindya Kirana',
-        'title': 'Stres Ringan',
-        'date': '12 Agu 2026, 20:15 WIB',
-        'score': 58,
-        'color': AppColors.tertiary.value,
-        'bg': AppColors.tertiaryContainer.value,
-        'image':
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBUD8y86yr3Iby6BIRJpr3nuL0uriCU1ZZIUR_Pen-a4ZEozm8tDnQ-rmCtYUgd7F0fHncgT5tMFJp_CXHZCmBp4pzOz3J6ukWb5aefHP8s_wfDFzh3hCHcX1Pn8W1xCFHWEk1-g6Kondm2a-aWzWqdnqizrb0Cp9qjtgOUVXDBsOVDuOEAE4xnLTVeu1DobT9Lx7hP5oZQB0IWoEitqLmS_B7iQGutGnDMRNEBcBdjrTF4rgTfVOpnfdqyuX5o6YQz2PA',
-      },
-      {
-        'id': '3',
-        'user_email': 'anindya.kirana@example.com',
-        'user_name': 'Anindya Kirana',
-        'title': 'Butuh Perhatian',
-        'date': '05 Agu 2026, 07:10 WIB',
-        'score': 40,
-        'color': AppColors.error.value,
-        'bg': AppColors.errorContainer.value,
-        'image':
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBrKQ7cDsFv9FHsaCLI1xjQx7Odrg5JoRmBlXx-qBsXDVYVBLSlU7aIGpuhmCBvu-1jdCY-CI8fp3rR7UW5mZpEVrR1k864yBteVkLUZoKKMmTd4ziF-ukiXNQ3SYaop9nKs-4rw2tYcbrbeEgkIhKGb6UeCfEtFonw3gzEauZu8-x9Dzphy2fRHrjraI51CyYIDxAWIrP5FbrA7fcOdBKEHm-KncXXVSnGe99ttanBjah3Q1TJrmBDcowaIBW5Lv7dcKY',
-      },
-    ];
-
-    // 6. Seed Psychologist Bookings
-    _bookingsTable = [
-      {
-        'id': '1',
-        'patient_name': 'Rian Pratama',
-        'patient_age': '24 Tahun',
-        'patient_avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-        'date': 'Hari ini, 19 Agu 2026',
-        'time': '14:00 - 15:00 WIB',
-        'issue_summary': 'Gejala insomnia & kecemasan menghadapi ujian skripsi.',
-        'screening_score': 54,
-        'screening_category': 'Kecemasan Sedang',
-        'consultation_type': 'Online Video Call',
-        'status': 'Upcoming',
-      },
-      {
-        'id': '2',
-        'patient_name': 'Nadia Safitri',
-        'patient_age': '29 Tahun',
-        'patient_avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
-        'date': 'Hari ini, 19 Agu 2026',
-        'time': '16:30 - 17:30 WIB',
-        'issue_summary': 'Burnout pekerjaan dan kesulitan manajemen emosi harian.',
-        'screening_score': 42,
-        'screening_category': 'Stres Tinggi',
-        'consultation_type': 'Tatap Muka di Klinik',
-        'status': 'Upcoming',
-      },
-      {
-        'id': '3',
-        'patient_name': 'Dimas Anggara',
-        'patient_age': '32 Tahun',
-        'patient_avatar': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-        'date': 'Kemarin, 18 Agu 2026',
-        'time': '10:00 - 11:00 WIB',
-        'issue_summary': 'Sesi evaluasi terapi CBT minggu ke-3 untuk relaksasi.',
-        'screening_score': 78,
-        'screening_category': 'Membaik / Ringan',
-        'consultation_type': 'Online Video Call',
-        'status': 'Completed',
-      },
-    ];
-
-    // 7. Seed Preferences
-    _preferencesTable = {
-      'morning_reminder': true,
-      'night_reminder': true,
-      'weekly_report': false,
-      'biometric_enabled': true,
-      'meditation_count': 12,
-    };
+    // 8. Anonymous Community Posts (Preserve all user posts)
+    // Filter out only explicit legacy dummy IDs if existing
+    _communityPostsTable.removeWhere((p) =>
+        p.id == 'post_1' ||
+        p.id == 'post_2' ||
+        p.id == 'post_3' ||
+        p.id == 'post_4' ||
+        p.id == 'post_dummy');
 
     await _flush();
   }
+
+  bool get hasActiveSession =>
+      _activeSession.isNotEmpty &&
+      _activeSession['email'] != null &&
+      (_activeSession['email'] as String).trim().isNotEmpty;
 
   Future<void> _flush() async {
     try {
@@ -327,12 +152,11 @@ class AppDatabase {
       if (_dbFile != null) {
         final data = {
           'patients': _patientsTable,
-          'psychologists': _psychologistsTable,
           'active_session': _activeSession,
           'journals': _journalsTable,
           'screenings': _screeningsTable,
-          'bookings': _bookingsTable,
           'preferences': _preferencesTable,
+          'community_posts': _communityPostsTable.map((p) => p.toJson()).toList(),
           'updated_at': DateTime.now().toIso8601String(),
         };
         await _dbFile!.writeAsString(jsonEncode(data));
@@ -356,7 +180,7 @@ class AppDatabase {
     final cleanEmail = email.trim().toLowerCase();
     final cleanName = name.trim();
 
-    // 1. Check if email exists in either table
+    // 1. Check if email exists
     final patientExists = _patientsTable.any(
       (p) => (p['email'] as String).toLowerCase() == cleanEmail,
     );
@@ -364,16 +188,6 @@ class AppDatabase {
       return {
         'success': false,
         'message': 'Email sudah terdaftar sebagai Pengguna. Silakan masuk atau gunakan email lain.',
-      };
-    }
-
-    final psychologistExists = _psychologistsTable.any(
-      (p) => (p['email'] as String).toLowerCase() == cleanEmail,
-    );
-    if (psychologistExists) {
-      return {
-        'success': false,
-        'message': 'Email ini sudah terdaftar sebagai akun Psikolog. Silakan masuk melalui tab Psikolog.',
       };
     }
 
@@ -415,16 +229,6 @@ class AppDatabase {
     );
 
     if (patientIndex == -1) {
-      final isPsychologist = _psychologistsTable.any(
-        (p) => (p['email'] as String).toLowerCase() == cleanEmail,
-      );
-      if (isPsychologist) {
-        return {
-          'success': false,
-          'message': 'Email terdaftar sebagai Psikolog. Silakan pilih tab "Psikolog" untuk masuk.',
-        };
-      }
-
       return {
         'success': false,
         'message': 'Akun Pengguna tidak ditemukan. Silakan daftar terlebih dahulu.',
@@ -449,126 +253,6 @@ class AppDatabase {
     };
   }
 
-  /// Register a new Psychologist into `_psychologistsTable`
-  Future<Map<String, dynamic>> registerPsychologist({
-    required String name,
-    required String email,
-    required String password,
-    required String licenseNumber,
-    required String experienceYears,
-    String? specialization,
-    String? consultationFee,
-    String? phone,
-  }) async {
-    final cleanEmail = email.trim().toLowerCase();
-    final cleanName = name.trim();
-
-    final psychologistExists = _psychologistsTable.any(
-      (p) => (p['email'] as String).toLowerCase() == cleanEmail,
-    );
-    if (psychologistExists) {
-      return {
-        'success': false,
-        'message': 'Email sudah terdaftar sebagai Psikolog. Silakan masuk.',
-      };
-    }
-
-    final patientExists = _patientsTable.any(
-      (p) => (p['email'] as String).toLowerCase() == cleanEmail,
-    );
-    if (patientExists) {
-      return {
-        'success': false,
-        'message': 'Email ini sudah terdaftar sebagai akun Pengguna.',
-      };
-    }
-
-    final newPsychologist = {
-      'id': 'psy_${DateTime.now().millisecondsSinceEpoch}',
-      'name': cleanName.isNotEmpty ? cleanName : 'Dr. Psikolog, M.Psi',
-      'email': cleanEmail,
-      'password': password,
-      'phone': phone?.trim() ?? '+62 821 5566 7788',
-      'license_number': licenseNumber.trim().isNotEmpty
-          ? licenseNumber.trim()
-          : 'SIPP. ${DateTime.now().year}/HIMPSI',
-      'experience_years': experienceYears.trim().isNotEmpty
-          ? experienceYears.trim()
-          : '3 Tahun',
-      'specialization': specialization?.trim().isNotEmpty == true
-          ? specialization!.trim()
-          : 'Psikologi Klinis & Konseling Mental',
-      'hospital_clinic': 'Klinik MindCare Mitra',
-      'consultation_fee': consultationFee?.trim().isNotEmpty == true
-          ? consultationFee!.trim()
-          : 'Rp 150.000',
-      'avatar_url':
-          'https://images.unsplash.com/photo-1594824813580-496a798b3f4f?auto=format&fit=crop&w=300&q=80',
-      'is_online_accepting': true,
-      'rating': '5.0',
-      'total_reviews': 1,
-      'role': 'psychologist',
-      'member_since': 'Anggota sejak ${_getCurrentMonthYear()}',
-      'created_at': DateTime.now().toIso8601String(),
-    };
-
-    _psychologistsTable.insert(0, newPsychologist);
-    _activeSession = Map<String, dynamic>.from(newPsychologist);
-    await _flush();
-
-    return {
-      'success': true,
-      'message': 'Pendaftaran Psikolog berhasil! Akun Anda aktif.',
-      'user': newPsychologist,
-    };
-  }
-
-  /// Login Psychologist from `_psychologistsTable`
-  Future<Map<String, dynamic>> loginPsychologist({
-    required String email,
-    required String password,
-  }) async {
-    final cleanEmail = email.trim().toLowerCase();
-
-    final psyIndex = _psychologistsTable.indexWhere(
-      (p) => (p['email'] as String).toLowerCase() == cleanEmail,
-    );
-
-    if (psyIndex == -1) {
-      final isPatient = _patientsTable.any(
-        (p) => (p['email'] as String).toLowerCase() == cleanEmail,
-      );
-      if (isPatient) {
-        return {
-          'success': false,
-          'message': 'Email terdaftar sebagai Pengguna Umum. Silakan pilih tab "Pengguna" untuk masuk.',
-        };
-      }
-
-      return {
-        'success': false,
-        'message': 'Akun Psikolog tidak ditemukan. Silakan daftar terlebih dahulu.',
-      };
-    }
-
-    final psychologist = _psychologistsTable[psyIndex];
-    if (psychologist['password'] != password) {
-      return {
-        'success': false,
-        'message': 'Kata sandi salah. Silakan periksa kembali.',
-      };
-    }
-
-    _activeSession = Map<String, dynamic>.from(psychologist);
-    await _flush();
-
-    return {
-      'success': true,
-      'message': 'Selamat bertugas, ${psychologist['name']}!',
-      'user': psychologist,
-    };
-  }
-
   /// Logout active session
   Future<void> logout() async {
     _activeSession = {};
@@ -585,19 +269,14 @@ class AppDatabase {
     }
 
     return UserProfile(
-      name: _activeSession['name'] ?? 'Anindya Kirana',
-      email: _activeSession['email'] ?? 'anindya.kirana@example.com',
+      name: _activeSession['name'] ?? 'Pengguna MindCare',
+      email: _activeSession['email'] ?? '',
       phone: _activeSession['phone'] ?? '+62 812 3456 7890',
       avatarUrl: _activeSession['avatar_url'] ??
           'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
       avatarBytes: avatarBytes,
       memberSince: _activeSession['member_since'] ?? 'Anggota sejak ${_getCurrentMonthYear()}',
       role: _activeSession['role'] ?? 'patient',
-      specialization: _activeSession['specialization'] ?? 'Psikologi Klinis & Terapi Stres',
-      licenseNumber: _activeSession['license_number'] ?? 'SIPP. 1984/HIMPSI/2023',
-      experienceYears: _activeSession['experience_years'] ?? '6 Tahun',
-      consultationFee: _activeSession['consultation_fee'] ?? 'Rp 150.000',
-      isOnlineAccepting: _activeSession['is_online_accepting'] ?? true,
     );
   }
 
@@ -625,28 +304,14 @@ class AppDatabase {
       _activeSession['avatar_bytes_base64'] = base64Encode(avatarBytes);
     }
     if (role != null) _activeSession['role'] = role;
-    if (specialization != null) _activeSession['specialization'] = specialization;
-    if (licenseNumber != null) _activeSession['license_number'] = licenseNumber;
-    if (experienceYears != null) _activeSession['experience_years'] = experienceYears;
-    if (consultationFee != null) _activeSession['consultation_fee'] = consultationFee;
-    if (isOnlineAccepting != null) _activeSession['is_online_accepting'] = isOnlineAccepting;
 
-    // Also sync back to respective table
+    // Sync back to patients table
     final currentEmail = _activeSession['email'] as String?;
     if (currentEmail != null) {
-      if (_activeSession['role'] == 'psychologist') {
-        for (var p in _psychologistsTable) {
-          if (p['email'] == currentEmail || p['id'] == _activeSession['id']) {
-            p.addAll(_activeSession);
-            break;
-          }
-        }
-      } else {
-        for (var p in _patientsTable) {
-          if (p['email'] == currentEmail || p['id'] == _activeSession['id']) {
-            p.addAll(_activeSession);
-            break;
-          }
+      for (var p in _patientsTable) {
+        if (p['email'] == currentEmail || p['id'] == _activeSession['id']) {
+          p.addAll(_activeSession);
+          break;
         }
       }
     }
@@ -678,19 +343,10 @@ class AppDatabase {
 
     final currentEmail = _activeSession['email'] as String?;
     if (currentEmail != null) {
-      if (_activeSession['role'] == 'psychologist') {
-        for (var p in _psychologistsTable) {
-          if (p['email'] == currentEmail || p['id'] == _activeSession['id']) {
-            p['password'] = newPassword;
-            break;
-          }
-        }
-      } else {
-        for (var p in _patientsTable) {
-          if (p['email'] == currentEmail || p['id'] == _activeSession['id']) {
-            p['password'] = newPassword;
-            break;
-          }
+      for (var p in _patientsTable) {
+        if (p['email'] == currentEmail || p['id'] == _activeSession['id']) {
+          p['password'] = newPassword;
+          break;
         }
       }
     }
@@ -702,34 +358,7 @@ class AppDatabase {
     };
   }
 
-  // --- Psychologist Appointments CRUD ---
-  List<PsychologistAppointment> getAppointments() {
-    return _bookingsTable.map((map) {
-      return PsychologistAppointment(
-        id: map['id'] as String,
-        patientName: map['patient_name'] as String,
-        patientAge: map['patient_age'] as String,
-        patientAvatar: map['patient_avatar'] as String,
-        date: map['date'] as String,
-        time: map['time'] as String,
-        issueSummary: map['issue_summary'] as String,
-        screeningScore: map['screening_score'] as int,
-        screeningCategory: map['screening_category'] as String,
-        consultationType: map['consultation_type'] as String,
-        status: map['status'] as String? ?? 'Upcoming',
-      );
-    }).toList();
-  }
 
-  Future<void> updateAppointmentStatus(String id, String status) async {
-    for (var booking in _bookingsTable) {
-      if (booking['id'] == id) {
-        booking['status'] = status;
-        break;
-      }
-    }
-    await _flush();
-  }
 
   // --- Journals CRUD (Filtered per Logged-in User) ---
   List<JournalEntry> getJournals([String? userEmail]) {
@@ -749,8 +378,8 @@ class AppDatabase {
         date: map['date'] as String,
         preview: map['preview'] as String,
         mood: map['mood'] as String,
-        moodColor: Color(map['mood_color'] as int? ?? AppColors.secondary.value),
-        moodBg: Color(map['mood_bg'] as int? ?? AppColors.secondaryContainer.value),
+        moodColor: Color(map['mood_color'] as int? ?? AppColors.secondary.toARGB32()),
+        moodBg: Color(map['mood_bg'] as int? ?? AppColors.secondaryContainer.toARGB32()),
         tags: List<String>.from(map['tags'] ?? []),
       );
     }).toList();
@@ -759,7 +388,7 @@ class AppDatabase {
   Future<void> insertJournal(JournalEntry entry) async {
     final activeEmail = entry.userEmail.isNotEmpty
         ? entry.userEmail
-        : (_activeSession['email'] ?? 'anindya.kirana@example.com').toString();
+        : (_activeSession['email'] ?? '').toString();
 
     _journalsTable.insert(0, {
       'id': entry.id,
@@ -769,8 +398,8 @@ class AppDatabase {
       'date': entry.date,
       'preview': entry.preview,
       'mood': entry.mood,
-      'mood_color': entry.moodColor.value,
-      'mood_bg': entry.moodBg.value,
+      'mood_color': entry.moodColor.toARGB32(),
+      'mood_bg': entry.moodBg.toARGB32(),
       'tags': entry.tags,
       'created_at': DateTime.now().toIso8601String(),
     });
@@ -800,8 +429,8 @@ class AppDatabase {
         title: map['title'] as String,
         date: map['date'] as String,
         score: map['score'] as int,
-        color: Color(map['color'] as int? ?? AppColors.secondary.value),
-        bg: Color(map['bg'] as int? ?? AppColors.secondaryContainer.value),
+        color: Color(map['color'] as int? ?? AppColors.secondary.toARGB32()),
+        bg: Color(map['bg'] as int? ?? AppColors.secondaryContainer.toARGB32()),
         image: map['image'] as String,
       );
     }).toList();
@@ -823,8 +452,8 @@ class AppDatabase {
       'title': record.title,
       'date': record.date,
       'score': record.score,
-      'color': record.color.value,
-      'bg': record.bg.value,
+      'color': record.color.toARGB32(),
+      'bg': record.bg.toARGB32(),
       'image': record.image,
       'created_at': DateTime.now().toIso8601String(),
     });
@@ -837,8 +466,10 @@ class AppDatabase {
     await _flush();
   }
 
+
+
   // --- Preferences & Meditation Stats ---
-  int getMeditationCount() => _preferencesTable['meditation_count'] as int? ?? 12;
+  int getMeditationCount() => _preferencesTable['meditation_count'] as int? ?? 0;
 
   Future<void> incrementMeditationCount() async {
     final current = getMeditationCount();
@@ -846,10 +477,69 @@ class AppDatabase {
     await _flush();
   }
 
+  bool isBiometricEnabled() => _preferencesTable['biometric_enabled'] as bool? ?? false;
+
+  Future<void> setBiometricEnabled(bool enabled) async {
+    _preferencesTable['biometric_enabled'] = enabled;
+    await _flush();
+  }
+
   Map<String, dynamic> getPreferences() => Map.unmodifiable(_preferencesTable);
 
-  Future<void> savePreferences(Map<String, dynamic> prefs) async {
-    _preferencesTable.addAll(prefs);
+  // --- Anonymous Community CRUD ---
+  List<CommunityPost> getCommunityPosts() {
+    return List<CommunityPost>.from(_communityPostsTable);
+  }
+
+  Future<void> insertCommunityPost(CommunityPost post) async {
+    _communityPostsTable.insert(0, post);
+    _notifyCommunityChanged();
+    await _flush();
+  }
+
+  Future<void> deleteCommunityPost(String postId) async {
+    _communityPostsTable.removeWhere((p) => p.id == postId);
+    _notifyCommunityChanged();
+    await _flush();
+  }
+
+  Future<void> deleteCommunityComment(String postId, String commentId) async {
+    for (var post in _communityPostsTable) {
+      if (post.id == postId) {
+        post.comments.removeWhere((c) => c.id == commentId);
+        post.commentsCount = post.comments.length;
+        break;
+      }
+    }
+    _notifyCommunityChanged();
+    await _flush();
+  }
+
+  Future<void> toggleLikeCommunityPost(String postId) async {
+    for (var post in _communityPostsTable) {
+      if (post.id == postId) {
+        post.isLiked = !post.isLiked;
+        if (post.isLiked) {
+          post.likesCount += 1;
+        } else {
+          post.likesCount = (post.likesCount - 1).clamp(0, 99999);
+        }
+        break;
+      }
+    }
+    _notifyCommunityChanged();
+    await _flush();
+  }
+
+  Future<void> addCommunityComment(String postId, CommunityComment comment) async {
+    for (var post in _communityPostsTable) {
+      if (post.id == postId) {
+        post.comments.insert(0, comment);
+        post.commentsCount += 1;
+        break;
+      }
+    }
+    _notifyCommunityChanged();
     await _flush();
   }
 

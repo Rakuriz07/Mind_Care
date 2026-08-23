@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mindcare/database/app_database.dart';
+import 'package:mindcare/database/db_helper.dart';
 import 'package:mindcare/models/app_models.dart';
 
 class AppStateService extends ChangeNotifier {
@@ -14,10 +15,11 @@ class AppStateService extends ChangeNotifier {
 
   bool _isReady = false;
   bool get isReady => _isReady;
+  bool get isLoggedIn => AppDatabase.instance.hasActiveSession;
 
   UserProfile _userProfile = UserProfile(
-    name: 'Anindya Kirana',
-    email: 'anindya.kirana@example.com',
+    name: 'Pengguna MindCare',
+    email: 'user@mindcare.id',
     phone: '+62 812 3456 7890',
     avatarUrl:
         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
@@ -25,23 +27,25 @@ class AppStateService extends ChangeNotifier {
 
   List<JournalEntry> _journals = [];
   List<ScreeningRecord> _screeningHistory = [];
-  List<PsychologistAppointment> _appointments = [];
-  int _meditationCount = 12;
+  int _meditationCount = 0;
 
   UserProfile get userProfile => _userProfile;
   List<JournalEntry> get journals => List.unmodifiable(_journals);
   List<ScreeningRecord> get screeningHistory => List.unmodifiable(_screeningHistory);
-  List<PsychologistAppointment> get appointments => List.unmodifiable(_appointments);
   int get latestScreeningScore => _screeningHistory.isNotEmpty ? _screeningHistory.first.score : 85;
   int get meditationCount => _meditationCount;
-  bool get isPsychologist => _userProfile.role == 'psychologist';
+  List<CommunityPost> get realTimeCommunityPosts => AppDatabase.instance.getCommunityPosts();
+  Stream<List<CommunityPost>> get realTimeCommunityStream => AppDatabase.instance.communityPostsStream;
 
   Future<void> _initDatabase() async {
     await AppDatabase.instance.init();
     _userProfile = AppDatabase.instance.getUserProfile();
+    if (AppDatabase.instance.hasActiveSession) {
+      await DbHelper.instance.setActiveSession(_userProfile.email);
+    } else {
+      await DbHelper.instance.logout();
+    }
     _refreshUserData();
-    _appointments = AppDatabase.instance.getAppointments();
-    _meditationCount = AppDatabase.instance.getMeditationCount();
     _isReady = true;
     notifyListeners();
   }
@@ -49,6 +53,7 @@ class AppStateService extends ChangeNotifier {
   void _refreshUserData() {
     _journals = AppDatabase.instance.getJournals(_userProfile.email);
     _screeningHistory = AppDatabase.instance.getScreenings(_userProfile.email);
+    _meditationCount = AppDatabase.instance.getMeditationCount();
   }
 
   // ==========================================
@@ -71,6 +76,11 @@ class AppStateService extends ChangeNotifier {
     if (res['success'] == true) {
       _userProfile = AppDatabase.instance.getUserProfile();
       _refreshUserData();
+      if (res['user'] != null && res['user'] is Map<String, dynamic>) {
+        await DbHelper.instance.syncUser(res['user'] as Map<String, dynamic>);
+      } else {
+        await DbHelper.instance.setActiveSession(_userProfile.email);
+      }
       notifyListeners();
     }
     return res;
@@ -88,52 +98,11 @@ class AppStateService extends ChangeNotifier {
     if (res['success'] == true) {
       _userProfile = AppDatabase.instance.getUserProfile();
       _refreshUserData();
-      notifyListeners();
-    }
-    return res;
-  }
-
-  Future<Map<String, dynamic>> registerPsychologist({
-    required String name,
-    required String email,
-    required String password,
-    required String licenseNumber,
-    required String experienceYears,
-    String? specialization,
-    String? consultationFee,
-    String? phone,
-  }) async {
-    final res = await AppDatabase.instance.registerPsychologist(
-      name: name,
-      email: email,
-      password: password,
-      licenseNumber: licenseNumber,
-      experienceYears: experienceYears,
-      specialization: specialization,
-      consultationFee: consultationFee,
-      phone: phone,
-    );
-
-    if (res['success'] == true) {
-      _userProfile = AppDatabase.instance.getUserProfile();
-      _refreshUserData();
-      notifyListeners();
-    }
-    return res;
-  }
-
-  Future<Map<String, dynamic>> loginPsychologist({
-    required String email,
-    required String password,
-  }) async {
-    final res = await AppDatabase.instance.loginPsychologist(
-      email: email,
-      password: password,
-    );
-
-    if (res['success'] == true) {
-      _userProfile = AppDatabase.instance.getUserProfile();
-      _refreshUserData();
+      if (res['user'] != null && res['user'] is Map<String, dynamic>) {
+        await DbHelper.instance.syncUser(res['user'] as Map<String, dynamic>);
+      } else {
+        await DbHelper.instance.setActiveSession(_userProfile.email);
+      }
       notifyListeners();
     }
     return res;
@@ -141,6 +110,7 @@ class AppStateService extends ChangeNotifier {
 
   Future<void> logout() async {
     await AppDatabase.instance.logout();
+    await DbHelper.instance.logout();
     _journals = [];
     _screeningHistory = [];
     notifyListeners();
@@ -220,17 +190,7 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Psychologist Appointments Operations ---
-  void updateAppointmentStatus(String id, String status) {
-    for (var appt in _appointments) {
-      if (appt.id == id) {
-        appt.status = status;
-        break;
-      }
-    }
-    AppDatabase.instance.updateAppointmentStatus(id, status);
-    notifyListeners();
-  }
+
 
   // --- Journal Operations (Attached to Logged-in User) ---
   void addJournal(JournalEntry entry) {
@@ -296,6 +256,40 @@ class AppStateService extends ChangeNotifier {
   void incrementMeditation() {
     _meditationCount++;
     AppDatabase.instance.incrementMeditationCount();
+    notifyListeners();
+  }
+
+  // --- Biometric Security Operations ---
+  bool get isBiometricEnabled => AppDatabase.instance.isBiometricEnabled();
+
+  Future<void> setBiometricEnabled(bool enabled) async {
+    await AppDatabase.instance.setBiometricEnabled(enabled);
+    notifyListeners();
+  }
+
+  // --- Anonymous Community Operations ---
+  void addCommunityPost(CommunityPost post) {
+    AppDatabase.instance.insertCommunityPost(post);
+    notifyListeners();
+  }
+
+  void deleteCommunityPost(String postId) {
+    AppDatabase.instance.deleteCommunityPost(postId);
+    notifyListeners();
+  }
+
+  void deleteCommunityComment(String postId, String commentId) {
+    AppDatabase.instance.deleteCommunityComment(postId, commentId);
+    notifyListeners();
+  }
+
+  void toggleLikePost(String postId) {
+    AppDatabase.instance.toggleLikeCommunityPost(postId);
+    notifyListeners();
+  }
+
+  void addCommentToPost(String postId, CommunityComment comment) {
+    AppDatabase.instance.addCommunityComment(postId, comment);
     notifyListeners();
   }
 }

@@ -84,7 +84,9 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             'Tambah Tag Baru',
             style: GoogleFonts.plusJakartaSans(
@@ -97,20 +99,33 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
             autofocus: true,
             decoration: InputDecoration(
               hintText: 'Contoh: Relaksasi, Liburan...',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.outline),
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: AppColors.outline,
+              ),
               filled: true,
               fillColor: AppColors.surfaceCanvas,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.outlineVariant.withOpacity(0.3)),
+                borderSide: BorderSide(
+                  color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                ),
               ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Batal', style: GoogleFonts.plusJakartaSans(color: AppColors.onSurfaceVariant)),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.plusJakartaSans(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -129,7 +144,9 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: const Text('Tambah'),
             ),
@@ -144,7 +161,9 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Silakan tuliskan cerita atau perasaan Anda terlebih dahulu.'),
+          content: Text(
+            'Silakan tuliskan cerita atau perasaan Anda terlebih dahulu.',
+          ),
           backgroundColor: AppColors.primary,
         ),
       );
@@ -158,7 +177,8 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       userEmail: currentUser.email,
       title: text.length > 30 ? '${text.substring(0, 30)}...' : text,
-      date: 'Hari Ini, ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')} WIB',
+      date:
+          'Hari Ini, ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')} WIB',
       preview: text,
       mood: selectedMood,
       moodColor: moodItem['textColor'] as Color,
@@ -177,7 +197,9 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Jurnal dengan suasana "$selectedMood" berhasil disimpan ✨'),
+        content: Text(
+          'Jurnal dengan suasana "$selectedMood" berhasil disimpan ✨',
+        ),
         backgroundColor: AppColors.secondary,
       ),
     );
@@ -196,7 +218,10 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
             // 2. Main Scrollable Canvas
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 12.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -337,14 +362,20 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.primary
-                                : AppColors.outlineVariant.withOpacity(0.3),
+                                : AppColors.outlineVariant.withValues(
+                                    alpha: 0.3,
+                                  ),
                             width: isSelected ? 2 : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: isSelected
-                                  ? (mood['color'] as Color).withOpacity(0.4)
-                                  : const Color(0xFF2D3142).withOpacity(0.04),
+                                  ? (mood['color'] as Color).withValues(
+                                      alpha: 0.4,
+                                    )
+                                  : const Color(
+                                      0xFF2D3142,
+                                    ).withValues(alpha: 0.04),
                               blurRadius: isSelected ? 12 : 6,
                               offset: const Offset(0, 3),
                             ),
@@ -354,12 +385,13 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
                           child: Image.network(
                             mood['imageUrl'],
                             fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Center(
-                              child: Text(
-                                mood['emoji'],
-                                style: const TextStyle(fontSize: 24),
-                              ),
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                Center(
+                                  child: Text(
+                                    mood['emoji'],
+                                    style: const TextStyle(fontSize: 24),
+                                  ),
+                                ),
                           ),
                         ),
                       ),
@@ -368,7 +400,9 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
                         mood['label'],
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                           color: isSelected
                               ? AppColors.primary
                               : AppColors.onSurfaceVariant,
@@ -405,12 +439,12 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
             color: AppColors.surfaceCard,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.outlineVariant.withOpacity(0.25),
+              color: AppColors.outlineVariant.withValues(alpha: 0.25),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF2D3142).withOpacity(0.04),
+                color: const Color(0xFF2D3142).withValues(alpha: 0.04),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -476,7 +510,10 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primaryContainer
@@ -485,12 +522,12 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
                     border: Border.all(
                       color: isSelected
                           ? AppColors.primaryContainer
-                          : AppColors.outlineVariant.withOpacity(0.4),
+                          : AppColors.outlineVariant.withValues(alpha: 0.4),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF2D3142).withOpacity(0.03),
+                        color: const Color(0xFF2D3142).withValues(alpha: 0.03),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -500,7 +537,9 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
                     tag,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                       color: isSelected
                           ? AppColors.onPrimaryContainer
                           : AppColors.onSurfaceVariant,
@@ -514,7 +553,10 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
             GestureDetector(
               onTap: _addNewTag,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(30),
@@ -557,7 +599,7 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 4,
-          shadowColor: AppColors.primary.withOpacity(0.3),
+          shadowColor: AppColors.primary.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/services/app_state_service.dart';
+import 'package:mindcare/services/biometric_service.dart';
 import 'package:mindcare/views/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -22,6 +23,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _nightReminder = true;
   bool _weeklyReport = false;
   bool _biometricEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    AppStateService.instance.addListener(_onAppStateChanged);
+  }
+
+  @override
+  void dispose() {
+    AppStateService.instance.removeListener(_onAppStateChanged);
+    super.dispose();
+  }
+
+  void _onAppStateChanged() {
+    if (mounted) setState(() {});
+  }
 
   final List<Map<String, String>> _availableAvatars = [
     {'title': 'Karakter Senang ✨', 'url': 'assets/images/senang.png'},
@@ -273,10 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       itemBuilder: (context, index) {
                         final avatar = _availableAvatars[index];
                         final bool isSelected =
-                            AppStateService
-                                    .instance
-                                    .userProfile
-                                    .avatarBytes ==
+                            AppStateService.instance.userProfile.avatarBytes ==
                                 null &&
                             AppStateService.instance.userProfile.avatarFile ==
                                 null &&
@@ -305,8 +319,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: AppColors.primary
-                                                .withValues(alpha: 0.25),
+                                            color: AppColors.primary.withValues(
+                                              alpha: 0.25,
+                                            ),
                                             blurRadius: 8,
                                             spreadRadius: 2,
                                           ),
@@ -321,19 +336,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           height: 48,
                                           fit: BoxFit.contain,
                                           errorBuilder:
-                                              (
-                                                context,
-                                                error,
-                                                stackTrace,
-                                              ) => Container(
-                                                width: 48,
-                                                height: 48,
-                                                color: AppColors.primaryFixed,
-                                                child: const Icon(
-                                                  Icons.person,
-                                                  color: AppColors.primary,
-                                                ),
-                                              ),
+                                              (context, error, stackTrace) =>
+                                                  Container(
+                                                    width: 48,
+                                                    height: 48,
+                                                    color:
+                                                        AppColors.primaryFixed,
+                                                    child: const Icon(
+                                                      Icons.person,
+                                                      color: AppColors.primary,
+                                                    ),
+                                                  ),
                                         )
                                       : Image.network(
                                           avatar['url']!,
@@ -341,19 +354,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           height: 48,
                                           fit: BoxFit.cover,
                                           errorBuilder:
-                                              (
-                                                context,
-                                                error,
-                                                stackTrace,
-                                              ) => Container(
-                                                width: 48,
-                                                height: 48,
-                                                color: AppColors.primaryFixed,
-                                                child: const Icon(
-                                                  Icons.person,
-                                                  color: AppColors.primary,
-                                                ),
-                                              ),
+                                              (context, error, stackTrace) =>
+                                                  Container(
+                                                    width: 48,
+                                                    height: 48,
+                                                    color:
+                                                        AppColors.primaryFixed,
+                                                    child: const Icon(
+                                                      Icons.person,
+                                                      color: AppColors.primary,
+                                                    ),
+                                                  ),
                                         ),
                                 ),
                               ),
@@ -541,6 +552,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final bool isEnabled = AppStateService.instance.isBiometricEnabled;
+
             return Container(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -558,28 +571,185 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Keamanan & Biometrik',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSurface,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Keamanan & Biometrik 🛡️',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isEnabled
+                              ? AppColors.secondaryContainer.withValues(
+                                  alpha: 0.5,
+                                )
+                              : AppColors.surfaceCanvas,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isEnabled
+                                ? AppColors.secondary
+                                : AppColors.outline,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          isEnabled ? 'Aktif 🔒' : 'Nonaktif',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isEnabled
+                                ? AppColors.secondary
+                                : AppColors.outline,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 14),
+
                   SwitchListTile(
-                    title: const Text(
-                      'Kunci Aplikasi dengan Sidik Jari / Face ID',
+                    title: Text(
+                      'Kunci Aplikasi (Sidik Jari / Face ID)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
-                    subtitle: const Text(
-                      'Melindungi catatan jurnal dan hasil skrining Anda.',
+                    subtitle: Text(
+                      'Amankan catatan jurnal, riwayat skrining, dan percakapan konsultasi Anda dengan sensor biometrik native.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                     ),
-                    value: _biometricEnabled,
+                    value: isEnabled,
                     activeThumbColor: AppColors.secondary,
-                    onChanged: (val) {
-                      setModalState(() => _biometricEnabled = val);
-                      setState(() => _biometricEnabled = val);
+                    onChanged: (val) async {
+                      if (val) {
+                        // Request Biometric Scan to enable
+                        final authRes = await BiometricService.instance
+                            .authenticate(
+                              localizedReason:
+                                  'Verifikasi sidik jari atau Face ID untuk mengaktifkan kunci keamanan MindCare',
+                            );
+
+                        if (authRes['success'] == true) {
+                          await AppStateService.instance.setBiometricEnabled(
+                            true,
+                          );
+                          setModalState(() {});
+                          setState(() {});
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Proteksi biometrik (Sidik Jari / Face ID) berhasil diaktifkan! 🔒✨',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              backgroundColor: AppColors.secondary,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        } else {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                authRes['message'] as String? ??
+                                    'Verifikasi dibatalkan.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                ),
+                              ),
+                              backgroundColor: AppColors.error,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      } else {
+                        // Disable biometric protection
+                        await AppStateService.instance.setBiometricEnabled(
+                          false,
+                        );
+                        setModalState(() {});
+                        setState(() {});
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Proteksi biometrik telah dinonaktifkan.',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                            ),
+                            backgroundColor: AppColors.outline,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
                     },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Button to test biometric scan directly
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final authRes = await BiometricService.instance
+                            .authenticate(
+                              localizedReason:
+                                  'Uji coba pemindaian sidik jari / Face ID pada perangkat Anda',
+                            );
+
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              authRes['message'] as String? ??
+                                  'Hasil pemindaian biometrik',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            backgroundColor: authRes['success'] == true
+                                ? AppColors.secondary
+                                : AppColors.error,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.fingerprint_rounded, size: 20),
+                      label: Text(
+                        'Uji Pindai Sidik Jari / Face ID 👆',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1583,43 +1753,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // --- Stats Grid (3 Bento Cards) ---
   Widget _buildStatsGrid() {
-    return Row(
-      children: [
-        // 1. Sesi Meditasi
-        Expanded(
-          child: _buildStatCard(
-            count: '${AppStateService.instance.meditationCount}',
-            label: 'Sesi Meditasi',
-            icon: Icons.self_improvement_rounded,
-            iconBg: AppColors.softPink.withValues(alpha: 0.35),
-            iconColor: AppColors.primary,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Sesi Meditasi
+          Expanded(
+            child: _buildStatCard(
+              count: '${AppStateService.instance.meditationCount}',
+              label: 'Sesi Meditasi',
+              icon: Icons.self_improvement_rounded,
+              iconBg: AppColors.softPink.withValues(alpha: 0.35),
+              iconColor: AppColors.primary,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
+          const SizedBox(width: 10),
 
-        // 2. Jurnal Ditulis
-        Expanded(
-          child: _buildStatCard(
-            count: '${AppStateService.instance.journals.length}',
-            label: 'Jurnal Ditulis',
-            icon: Icons.menu_book_rounded,
-            iconBg: AppColors.softMint.withValues(alpha: 0.4),
-            iconColor: AppColors.secondary,
+          // 2. Jurnal Ditulis
+          Expanded(
+            child: _buildStatCard(
+              count: '${AppStateService.instance.journals.length}',
+              label: 'Jurnal Ditulis',
+              icon: Icons.menu_book_rounded,
+              iconBg: AppColors.softMint.withValues(alpha: 0.4),
+              iconColor: AppColors.secondary,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
+          const SizedBox(width: 10),
 
-        // 3. Skrining Dilakukan
-        Expanded(
-          child: _buildStatCard(
-            count: '${AppStateService.instance.screeningHistory.length}',
-            label: 'Skrining Dilakukan',
-            icon: Icons.assignment_turned_in_rounded,
-            iconBg: AppColors.softSunshine.withValues(alpha: 0.5),
-            iconColor: AppColors.tertiary,
+          // 3. Skrining Dilakukan
+          Expanded(
+            child: _buildStatCard(
+              count: '${AppStateService.instance.screeningHistory.length}',
+              label: 'Skrining Dilakukan',
+              icon: Icons.assignment_turned_in_rounded,
+              iconBg: AppColors.softSunshine.withValues(alpha: 0.5),
+              iconColor: AppColors.tertiary,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1631,7 +1804,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required Color iconColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(16),
@@ -1645,13 +1818,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 20),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             count,
             style: GoogleFonts.plusJakartaSans(
@@ -1664,6 +1838,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             label,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 10,
               color: AppColors.onSurfaceVariant,

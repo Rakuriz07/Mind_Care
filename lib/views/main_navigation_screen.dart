@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
+import 'package:mindcare/views/community/community_screen.dart';
 import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/home_screen.dart';
-import 'package:mindcare/views/psychologist_screen.dart';
 import 'package:mindcare/views/screening_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -43,7 +43,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           HomeScreen(isRootTab: true),
           ScreeningScreen(),
           HistoryScreen(),
-          PsychologistScreen(),
+          CommunityScreen(),
         ],
       ),
       bottomNavigationBar: _buildUnifiedBottomNav(),
@@ -70,7 +70,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           _buildNavItem(0, Icons.home_rounded, 'Home'),
           _buildNavItem(1, Icons.fact_check_rounded, 'Screening'),
           _buildNavItem(2, Icons.history_rounded, 'History'),
-          _buildNavItem(3, Icons.psychology_outlined, 'Psychologist'),
+          _buildNavItem(3, Icons.forum_outlined, 'Komunitas'),
         ],
       ),
     );

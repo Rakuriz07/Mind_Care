@@ -90,19 +90,27 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             'Batalkan Skrining?',
             style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Progres pengisian kuesioner Anda saat ini tidak akan tersimpan jika Anda keluar.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.onSurfaceVariant),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: AppColors.onSurfaceVariant,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Lanjutkan', style: GoogleFonts.plusJakartaSans(color: AppColors.primary)),
+              child: Text(
+                'Lanjutkan',
+                style: GoogleFonts.plusJakartaSans(color: AppColors.primary),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -112,7 +120,9 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: const Text('Keluar'),
             ),
@@ -131,28 +141,30 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
     // Convert raw score (0-30) to wellness scale (0-100)
     // Low stress (0 raw score) = 95 wellness; High stress (30 raw score) = 35 wellness
     final int maxRaw = _questions.length * 3;
-    final int wellnessScore = (100 - ((totalScore / maxRaw) * 75)).round().clamp(25, 95);
+    final int wellnessScore = (100 - ((totalScore / maxRaw) * 75))
+        .round()
+        .clamp(25, 95);
 
     final String category = wellnessScore >= 75
         ? 'Sangat Baik'
         : wellnessScore >= 50
-            ? 'Stres Ringan'
-            : 'Butuh Perhatian';
+        ? 'Stres Ringan'
+        : 'Butuh Perhatian';
     final Color scoreColor = wellnessScore >= 75
         ? AppColors.secondary
         : wellnessScore >= 50
-            ? AppColors.tertiary
-            : AppColors.error;
+        ? AppColors.tertiary
+        : AppColors.error;
     final Color bgColor = wellnessScore >= 75
         ? AppColors.secondaryContainer
         : wellnessScore >= 50
-            ? AppColors.tertiaryContainer
-            : AppColors.errorContainer;
+        ? AppColors.tertiaryContainer
+        : AppColors.errorContainer;
     final String imageUrl = wellnessScore >= 75
         ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuAD0xZM5CV0Z_4RpRFRQoub2kd51IOVm_WsspJKkZoBRRYRhk8lmLLHhAaksl7E6BdIXPrQ6zGAopmCE71llnm1VD00FOn2HcuUV7GY2K5kdaYRIcMCkdErQWs1yEq9ULH6uE62Rdhf6LipJ-nYPHYE2QcCFR_jX-Z5B_ps_-SMN5BzABSKFp7bTdMT_haqSHxDG3l9u5jmw55ubypNln296gLmoDupZsJvMqSTlLFM9cytzOVz14JL7S56UW10tgRP-VY'
         : wellnessScore >= 50
-            ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBUD8y86yr3Iby6BIRJpr3nuL0uriCU1ZZIUR_Pen-a4ZEozm8tDnQ-rmCtYUgd7F0fHncgT5tMFJp_CXHZCmBp4pzOz3J6ukWb5aefHP8s_wfDFzh3hCHcX1Pn8W1xCFHWEk1-g6Kondm2a-aWzWqdnqizrb0Cp9qjtgOUVXDBsOVDuOEAE4xnLTVeu1DobT9Lx7hP5oZQB0IWoEitqLmS_B7iQGutGnDMRNEBcBdjrTF4rgTfVOpnfdqyuX5o6YQz2PA'
-            : 'https://lh3.googleusercontent.com/aida-public/AB6AXuBrKQ7cDsFv9FHsaCLI1xjQx7Odrg5JoRmBlXx-qBsXDVYVBLSlU7aIGpuhmCBvu-1jdCY-CI8fp3rR7UW5mZpEVrR1k864yBteVkLUZoKKMmTd4ziF-ukiXNQ3SYaop9nKs-4rw2tYcbrbeEgkIhKGb6UeCfEtFonw3gzEauZu8-x9Dzphy2fRHrjraI51CyYIDxAWIrP5FbrA7fcOdBKEHm-KncXXVSnGe99ttanBjah3Q1TJrmBDcowaIBW5Lv7dcKY';
+        ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBUD8y86yr3Iby6BIRJpr3nuL0uriCU1ZZIUR_Pen-a4ZEozm8tDnQ-rmCtYUgd7F0fHncgT5tMFJp_CXHZCmBp4pzOz3J6ukWb5aefHP8s_wfDFzh3hCHcX1Pn8W1xCFHWEk1-g6Kondm2a-aWzWqdnqizrb0Cp9qjtgOUVXDBsOVDuOEAE4xnLTVeu1DobT9Lx7hP5oZQB0IWoEitqLmS_B7iQGutGnDMRNEBcBdjrTF4rgTfVOpnfdqyuX5o6YQz2PA'
+        : 'https://lh3.googleusercontent.com/aida-public/AB6AXuBrKQ7cDsFv9FHsaCLI1xjQx7Odrg5JoRmBlXx-qBsXDVYVBLSlU7aIGpuhmCBvu-1jdCY-CI8fp3rR7UW5mZpEVrR1k864yBteVkLUZoKKMmTd4ziF-ukiXNQ3SYaop9nKs-4rw2tYcbrbeEgkIhKGb6UeCfEtFonw3gzEauZu8-x9Dzphy2fRHrjraI51CyYIDxAWIrP5FbrA7fcOdBKEHm-KncXXVSnGe99ttanBjah3Q1TJrmBDcowaIBW5Lv7dcKY';
 
     final currentUser = AppStateService.instance.userProfile;
     AppStateService.instance.addScreeningRecord(
@@ -161,7 +173,8 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
         userEmail: currentUser.email,
         userName: currentUser.name,
         title: category,
-        date: 'Hari ini, ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')} WIB',
+        date:
+            'Hari ini, ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')} WIB',
         score: wellnessScore,
         color: scoreColor,
         bg: bgColor,
@@ -197,7 +210,10 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
             // 2. Main Question & Options
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -224,7 +240,10 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
                           onTap: () => _selectOption(index),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 18,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.surfaceCard,
                               borderRadius: BorderRadius.circular(20),
@@ -237,8 +256,12 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
                               boxShadow: [
                                 BoxShadow(
                                   color: isSelected
-                                      ? AppColors.primaryContainer.withOpacity(0.2)
-                                      : const Color(0xFF2D3142).withOpacity(0.03),
+                                      ? AppColors.primaryContainer.withValues(
+                                          alpha: 0.2,
+                                        )
+                                      : const Color(
+                                          0xFF2D3142,
+                                        ).withValues(alpha: 0.03),
                                   blurRadius: isSelected ? 16 : 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -304,7 +327,7 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF2D3142).withOpacity(0.04),
+                        color: const Color(0xFF2D3142).withValues(alpha: 0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -341,7 +364,9 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
               value: progress,
               minHeight: 8,
               backgroundColor: AppColors.surfaceVariant,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryContainer),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primaryContainer,
+              ),
             ),
           ),
         ],
@@ -359,7 +384,9 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceCanvas,
         border: Border(
-          top: BorderSide(color: AppColors.surfaceVariant.withOpacity(0.6)),
+          top: BorderSide(
+            color: AppColors.surfaceVariant.withValues(alpha: 0.6),
+          ),
         ),
       ),
       child: Row(
@@ -372,7 +399,9 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
               foregroundColor: AppColors.onSurface,
               disabledForegroundColor: AppColors.outlineVariant,
               side: BorderSide(
-                color: hasPrev ? AppColors.outline : AppColors.outlineVariant.withOpacity(0.4),
+                color: hasPrev
+                    ? AppColors.outline
+                    : AppColors.outlineVariant.withValues(alpha: 0.4),
                 width: 1.5,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -396,7 +425,7 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
               backgroundColor: AppColors.primaryContainer,
               foregroundColor: AppColors.onPrimaryContainer,
               elevation: 2,
-              shadowColor: AppColors.primaryContainer.withOpacity(0.3),
+              shadowColor: AppColors.primaryContainer.withValues(alpha: 0.3),
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),

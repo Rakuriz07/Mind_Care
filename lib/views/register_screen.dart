@@ -4,9 +4,6 @@ import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/services/app_state_service.dart';
 import 'package:mindcare/views/main_navigation_screen.dart';
 import 'package:mindcare/views/login_screen.dart';
-import 'package:mindcare/views/psychologist_dashboard_screen.dart';
-
-enum UserRole { user, psychologist }
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,16 +13,11 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  UserRole _selectedRole = UserRole.user;
-
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _licenseController = TextEditingController();
-  final TextEditingController _experienceController = TextEditingController();
-  final TextEditingController _specializationController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
@@ -38,9 +30,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _licenseController.dispose();
-    _experienceController.dispose();
-    _specializationController.dispose();
     super.dispose();
   }
 
@@ -51,14 +40,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    // 1. Basic Validations
     if (name.isEmpty) {
       _showError('Silakan masukkan nama lengkap Anda.');
       return;
     }
 
-    if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
-      _showError('Format email tidak valid.');
+    if (email.isEmpty) {
+      _showError('Silakan masukkan alamat email Anda.');
       return;
     }
 
@@ -74,77 +62,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    if (_selectedRole == UserRole.psychologist) {
-      final license = _licenseController.text.trim();
-      final exp = _experienceController.text.trim();
-      final spec = _specializationController.text.trim();
+    final res = await AppStateService.instance.registerPatient(
+      name: name,
+      email: email,
+      password: password,
+      phone: phone.isNotEmpty ? phone : '+62 812 3456 7890',
+    );
 
-      if (license.isEmpty) {
-        setState(() => _isLoading = false);
-        _showError('Silakan masukkan nomor STR / SIPP Anda.');
-        return;
-      }
+    setState(() => _isLoading = false);
 
-      if (exp.isEmpty) {
-        setState(() => _isLoading = false);
-        _showError('Silakan masukkan lama pengalaman praktik.');
-        return;
-      }
+    if (!mounted) return;
 
-      final res = await AppStateService.instance.registerPsychologist(
-        name: name,
-        email: email,
-        password: password,
-        licenseNumber: license,
-        experienceYears: '$exp Tahun',
-        specialization: spec.isNotEmpty ? spec : 'Psikologi Klinis & Konseling Mental',
-        phone: phone.isNotEmpty ? phone : '+62 821 5566 7788',
+    if (res['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res['message'] ?? 'Pendaftaran berhasil! Selamat datang di MindCare 🎉'),
+          backgroundColor: AppColors.secondary,
+        ),
       );
-
-      setState(() => _isLoading = false);
-
-      if (!mounted) return;
-
-      if (res['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(res['message'] ?? 'Pendaftaran Psikolog berhasil! ✨'),
-            backgroundColor: AppColors.secondary,
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const PsychologistDashboardScreen()),
-        );
-      } else {
-        _showError(res['message'] ?? 'Gagal melakukan pendaftaran.');
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+      );
     } else {
-      final res = await AppStateService.instance.registerPatient(
-        name: name,
-        email: email,
-        password: password,
-        phone: phone.isNotEmpty ? phone : '+62 812 3456 7890',
-      );
-
-      setState(() => _isLoading = false);
-
-      if (!mounted) return;
-
-      if (res['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(res['message'] ?? 'Akun Pengguna berhasil dibuat! ✨'),
-            backgroundColor: AppColors.secondary,
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-        );
-      } else {
-        _showError(res['message'] ?? 'Gagal melakukan pendaftaran.');
-      }
+      _showError(res['message'] ?? 'Gagal mendaftar. Silakan coba lagi.');
     }
   }
 
@@ -227,41 +168,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       children: [
         // App Logo
-        Container(
-          width: 90,
-          height: 90,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                blurRadius: 20,
-                spreadRadius: 2,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/logo.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                _selectedRole == UserRole.psychologist ? Icons.medical_services_rounded : Icons.psychology,
-                color: AppColors.primary,
-                size: 44,
-              ),
-            ),
+        Image.asset(
+          'assets/images/logo.png',
+          width: 200,
+          height: 200,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.psychology,
+            color: AppColors.primary,
+            size: 140,
           ),
         ),
         const SizedBox(height: 16),
 
         // Title
         Text(
-          _selectedRole == UserRole.psychologist
-              ? 'Daftar Akun Psikolog'
-              : 'Daftar Akun Pengguna',
+          'Daftar Akun Pengguna',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 24,
@@ -273,9 +195,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         // Subtitle
         Text(
-          _selectedRole == UserRole.psychologist
-              ? 'Gabung sebagai mitra profesional MindCare untuk membantu pasien.'
-              : 'Mulai perjalanan kesehatan mentalmu bersama kami.',
+          'Mulai perjalanan kesehatan mentalmu bersama kami.',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
@@ -309,184 +229,66 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Role Selection Section
-          Text(
-            'Pilih Tipe Pendaftaran',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.onSurfaceVariant,
-            ),
+          // Nama Lengkap Input
+          _buildLabel('Nama Lengkap'),
+          const SizedBox(height: 6),
+          _buildTextField(
+            controller: _nameController,
+            hintText: 'Masukkan nama lengkap Anda',
+            icon: Icons.person_outline_rounded,
           ),
-          const SizedBox(height: 10),
-          _buildRoleSelector(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          if (_selectedRole == UserRole.user) ...[
-            // Nama Lengkap Input
-            _buildLabel('Nama Lengkap'),
-            const SizedBox(height: 6),
-            _buildTextField(
-              controller: _nameController,
-              hintText: 'Contoh: Anindya Kirana',
-              icon: Icons.person_outline_rounded,
-            ),
-            const SizedBox(height: 16),
+          // Email Input
+          _buildLabel('Alamat Email'),
+          const SizedBox(height: 6),
+          _buildTextField(
+            controller: _emailController,
+            hintText: 'nama@email.com',
+            icon: Icons.mail_outline_rounded,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 16),
 
-            // Email Input
-            _buildLabel('Alamat Email'),
-            const SizedBox(height: 6),
-            _buildTextField(
-              controller: _emailController,
-              hintText: 'nama@email.com',
-              icon: Icons.mail_outline_rounded,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
+          // Nomor HP
+          _buildLabel('Nomor WhatsApp / HP'),
+          const SizedBox(height: 6),
+          _buildTextField(
+            controller: _phoneController,
+            hintText: '+62 812 3456 7890',
+            icon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 16),
 
-            // Nomor HP
-            _buildLabel('Nomor WhatsApp / HP'),
-            const SizedBox(height: 6),
-            _buildTextField(
-              controller: _phoneController,
-              hintText: '+62 812 3456 7890',
-              icon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
+          // Password Input
+          _buildLabel('Kata Sandi (Min. 6 Karakter)'),
+          const SizedBox(height: 6),
+          _buildPasswordField(
+            controller: _passwordController,
+            hintText: '••••••••',
+            isVisible: _isPasswordVisible,
+            onToggle: () {
+              setState(() {
+                _isPasswordVisible = !_isPasswordVisible;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
 
-            // Password Input
-            _buildLabel('Kata Sandi (Min. 6 Karakter)'),
-            const SizedBox(height: 6),
-            _buildPasswordField(
-              controller: _passwordController,
-              hintText: '••••••••',
-              isVisible: _isPasswordVisible,
-              onToggle: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Confirm Password Input
-            _buildLabel('Konfirmasi Kata Sandi'),
-            const SizedBox(height: 6),
-            _buildPasswordField(
-              controller: _confirmPasswordController,
-              hintText: '••••••••',
-              isVisible: _isConfirmPasswordVisible,
-              onToggle: () {
-                setState(() {
-                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                });
-              },
-            ),
-          ] else ...[
-            // Nama Lengkap & Gelar Input
-            _buildLabel('Nama Lengkap & Gelar Profesional'),
-            const SizedBox(height: 6),
-            _buildTextField(
-              controller: _nameController,
-              hintText: 'Contoh: Dr. Sarah Doe, M.Psi',
-              icon: Icons.badge_outlined,
-            ),
-            const SizedBox(height: 16),
-
-            // Email Profesional Input
-            _buildLabel('Email Profesional'),
-            const SizedBox(height: 6),
-            _buildTextField(
-              controller: _emailController,
-              hintText: 'sarah.doe@clinic.com',
-              icon: Icons.mail_outline_rounded,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-
-            // Nomor STR / SIPP Input
-            _buildLabel('Nomor STR / SIPP Resmi'),
-            const SizedBox(height: 6),
-            _buildTextField(
-              controller: _licenseController,
-              hintText: 'Misal: SIPP. 1984/HIMPSI/2023',
-              icon: Icons.assignment_ind_outlined,
-            ),
-            const SizedBox(height: 16),
-
-            // Tahun Pengalaman & Spesialisasi
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('Pengalaman'),
-                      const SizedBox(height: 6),
-                      _buildTextField(
-                        controller: _experienceController,
-                        hintText: 'Misal: 5',
-                        icon: Icons.work_history_outlined,
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('Spesialisasi'),
-                      const SizedBox(height: 6),
-                      _buildTextField(
-                        controller: _specializationController,
-                        hintText: 'Psikologi Klinis',
-                        icon: Icons.psychology_outlined,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Password Input
-            _buildLabel('Kata Sandi'),
-            const SizedBox(height: 6),
-            _buildPasswordField(
-              controller: _passwordController,
-              hintText: '••••••••',
-              isVisible: _isPasswordVisible,
-              onToggle: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Confirm Password Input
-            _buildLabel('Konfirmasi Kata Sandi'),
-            const SizedBox(height: 6),
-            _buildPasswordField(
-              controller: _confirmPasswordController,
-              hintText: '••••••••',
-              isVisible: _isConfirmPasswordVisible,
-              onToggle: () {
-                setState(() {
-                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Info Banner
-            _buildInfoBanner(),
-          ],
+          // Confirm Password Input
+          _buildLabel('Konfirmasi Kata Sandi'),
+          const SizedBox(height: 6),
+          _buildPasswordField(
+            controller: _confirmPasswordController,
+            hintText: '••••••••',
+            isVisible: _isConfirmPasswordVisible,
+            onToggle: () {
+              setState(() {
+                _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+              });
+            },
+          ),
           const SizedBox(height: 24),
 
           // Primary Register Button
@@ -513,9 +315,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          _selectedRole == UserRole.psychologist
-                              ? 'Daftar sebagai Psikolog'
-                              : 'Daftar Akun Pengguna',
+                          'Daftar Akun Pengguna',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -533,111 +333,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  // --- Role Selector Widget (Pengguna / Psikolog) ---
-  Widget _buildRoleSelector() {
-    final bool isUserSelected = _selectedRole == UserRole.user;
-    final bool isPsychologistSelected = _selectedRole == UserRole.psychologist;
-
-    return Row(
-      children: [
-        // Role: Saya Pengguna
-        Expanded(
-          child: InkWell(
-            onTap: () {
-              setState(() {
-                _selectedRole = UserRole.user;
-              });
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-              decoration: BoxDecoration(
-                color: isUserSelected
-                    ? AppColors.primaryContainer.withValues(alpha: 0.2)
-                    : AppColors.surfaceCanvas,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isUserSelected
-                      ? AppColors.primary
-                      : AppColors.outlineVariant.withValues(alpha: 0.4),
-                  width: isUserSelected ? 2 : 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.person,
-                    size: 28,
-                    color: isUserSelected ? AppColors.primary : AppColors.outline,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Pengguna / Pasien',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: isUserSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isUserSelected ? AppColors.primary : AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-
-        // Role: Saya Psikolog
-        Expanded(
-          child: InkWell(
-            onTap: () {
-              setState(() {
-                _selectedRole = UserRole.psychologist;
-              });
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-              decoration: BoxDecoration(
-                color: isPsychologistSelected
-                    ? AppColors.secondaryContainer.withValues(alpha: 0.25)
-                    : AppColors.surfaceCanvas,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isPsychologistSelected
-                      ? AppColors.secondary
-                      : AppColors.outlineVariant.withValues(alpha: 0.4),
-                  width: isPsychologistSelected ? 2 : 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.medical_services_rounded,
-                    size: 28,
-                    color: isPsychologistSelected ? AppColors.secondary : AppColors.outline,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Psikolog / Terapis',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: isPsychologistSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isPsychologistSelected ? AppColors.secondary : AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -756,41 +451,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             splashRadius: 20,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoBanner() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryContainer.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.secondary.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.verified_user_outlined,
-            color: AppColors.secondary,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Nomor STR/SIPP Anda akan otomatis diverifikasi ke database HIMPSI/Kemenkes untuk menjamin kredensial profesional.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                color: AppColors.onSurfaceVariant,
-                height: 1.3,
-              ),
-            ),
           ),
         ],
       ),

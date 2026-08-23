@@ -46,7 +46,10 @@ class HasilSkriningScreen extends StatelessWidget {
           'desc': 'Tuangkan pikiranmu untuk jaga fokus.',
           'bg': AppColors.primaryFixed,
           'iconColor': AppColors.primary,
-          'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DaftarJurnalScreen())),
+          'onTap': () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const DaftarJurnalScreen()),
+          ),
         },
         {
           'icon': Icons.sports_esports_rounded,
@@ -54,7 +57,12 @@ class HasilSkriningScreen extends StatelessWidget {
           'desc': 'Mainkan mini game pereda cemas & stres.',
           'bg': AppColors.secondaryContainer,
           'iconColor': AppColors.secondary,
-          'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GameRelaksasiScreen())),
+          'onTap': () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const GameRelaksasiScreen(),
+            ),
+          ),
         },
       ];
     } else if (score >= 50) {
@@ -73,7 +81,12 @@ class HasilSkriningScreen extends StatelessWidget {
           'desc': 'Turunkan denyut jantung dan rasa cemas.',
           'bg': AppColors.softMint,
           'iconColor': AppColors.secondary,
-          'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MeditasiTidurScreen())),
+          'onTap': () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MeditasiTidurScreen(),
+            ),
+          ),
         },
         {
           'icon': Icons.bedtime_outlined,
@@ -81,7 +94,12 @@ class HasilSkriningScreen extends StatelessWidget {
           'desc': 'Kurangi insomnia dan pikiran cemas.',
           'bg': AppColors.softSunshine,
           'iconColor': AppColors.tertiary,
-          'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TipsTidurNyenyakScreen())),
+          'onTap': () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const TipsTidurNyenyakScreen(),
+            ),
+          ),
         },
       ];
     } else {
@@ -102,7 +120,9 @@ class HasilSkriningScreen extends StatelessWidget {
           'iconColor': AppColors.primary,
           'onTap': () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Membuka daftar psikolog MindCare...')),
+              const SnackBar(
+                content: Text('Membuka daftar psikolog MindCare...'),
+              ),
             );
           },
         },
@@ -112,7 +132,12 @@ class HasilSkriningScreen extends StatelessWidget {
           'desc': 'Meletuskan cemas & menyelaraskan napas.',
           'bg': AppColors.softMint,
           'iconColor': AppColors.secondary,
-          'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GameRelaksasiScreen())),
+          'onTap': () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const GameRelaksasiScreen(),
+            ),
+          ),
         },
       ];
     }
@@ -128,11 +153,19 @@ class HasilSkriningScreen extends StatelessWidget {
             // 2. Main Scrollable Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 8.0,
+                ),
                 child: Column(
                   children: [
                     // Result Hero (Emoticon + Headline + Description)
-                    _buildResultHero(moodImageUrl, headline, description, pulseGlowColor),
+                    _buildResultHero(
+                      moodImageUrl,
+                      headline,
+                      description,
+                      pulseGlowColor,
+                    ),
                     const SizedBox(height: 24),
 
                     // Glass Score Gauge Card
@@ -168,7 +201,11 @@ class HasilSkriningScreen extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: () => Navigator.maybePop(context),
-                icon: const Icon(Icons.arrow_back, color: AppColors.primary, size: 22),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 4),
               Text(
@@ -184,7 +221,11 @@ class HasilSkriningScreen extends StatelessWidget {
           IconButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Hasil skrining telah tersimpan ke riwayat profil Anda.')),
+                const SnackBar(
+                  content: Text(
+                    'Hasil skrining telah tersimpan ke riwayat profil Anda.',
+                  ),
+                ),
               );
             },
             icon: const Icon(
@@ -199,7 +240,12 @@ class HasilSkriningScreen extends StatelessWidget {
   }
 
   // --- Result Hero Section ---
-  Widget _buildResultHero(String imageUrl, String headline, String description, Color glowColor) {
+  Widget _buildResultHero(
+    String imageUrl,
+    String headline,
+    String description,
+    Color glowColor,
+  ) {
     return Column(
       children: [
         // Mascot / Mood Emoticon with Glow
@@ -211,10 +257,10 @@ class HasilSkriningScreen extends StatelessWidget {
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: glowColor.withOpacity(0.4),
+                color: glowColor.withValues(alpha: 0.4),
                 boxShadow: [
                   BoxShadow(
-                    color: glowColor.withOpacity(0.5),
+                    color: glowColor.withValues(alpha: 0.5),
                     blurRadius: 30,
                     spreadRadius: 10,
                   ),
@@ -227,8 +273,11 @@ class HasilSkriningScreen extends StatelessWidget {
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.sentiment_satisfied_alt_rounded, size: 80, color: AppColors.primary),
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.sentiment_satisfied_alt_rounded,
+                  size: 80,
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ],
@@ -268,7 +317,9 @@ class HasilSkriningScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+        ),
         gradient: LinearGradient(
           colors: [
             AppColors.softMint.withValues(alpha: 0.2),
@@ -361,7 +412,9 @@ class HasilSkriningScreen extends StatelessWidget {
   }
 
   // --- Bento Recommendations Section ---
-  Widget _buildRecommendationsSection(List<Map<String, dynamic>> recommendations) {
+  Widget _buildRecommendationsSection(
+    List<Map<String, dynamic>> recommendations,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -388,7 +441,9 @@ class HasilSkriningScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceCard,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
+                  border: Border.all(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.2),
+                  ),
                   boxShadow: const [
                     BoxShadow(
                       color: Color.fromRGBO(45, 49, 66, 0.04),
@@ -406,7 +461,11 @@ class HasilSkriningScreen extends StatelessWidget {
                         color: rec['bg'] as Color,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(rec['icon'] as IconData, color: rec['iconColor'] as Color, size: 24),
+                      child: Icon(
+                        rec['icon'] as IconData,
+                        color: rec['iconColor'] as Color,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -432,7 +491,11 @@ class HasilSkriningScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right_rounded, color: AppColors.outlineVariant, size: 22),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.outlineVariant,
+                      size: 22,
+                    ),
                   ],
                 ),
               ),
@@ -461,7 +524,7 @@ class HasilSkriningScreen extends StatelessWidget {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               elevation: 3,
-              shadowColor: AppColors.primary.withOpacity(0.3),
+              shadowColor: AppColors.primary.withValues(alpha: 0.3),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),

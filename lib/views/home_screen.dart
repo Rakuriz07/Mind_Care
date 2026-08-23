@@ -8,10 +8,9 @@ import 'package:mindcare/views/game_relaksasi_screen.dart';
 import 'package:mindcare/views/profile_screen.dart';
 import 'package:mindcare/views/tulis_jurnal_screen.dart';
 import 'package:mindcare/views/daftar_jurnal_screen.dart';
-import 'package:mindcare/views/kuesioner_screening_screen.dart';
 import 'package:mindcare/views/screening_screen.dart';
 import 'package:mindcare/views/history_screen.dart';
-import 'package:mindcare/views/psychologist_screen.dart';
+import 'package:mindcare/views/community/community_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isRootTab;
@@ -894,7 +893,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       height: 72,
       decoration: BoxDecoration(
-        color: AppColors.surfaceCard.withOpacity(0.95),
+        color: AppColors.surfaceCard.withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: const [
           BoxShadow(
@@ -910,7 +909,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildNavItem(0, Icons.home_rounded, 'Home'),
           _buildNavItem(1, Icons.fact_check_outlined, 'Screening'),
           _buildNavItem(2, Icons.history_rounded, 'History'),
-          _buildNavItem(3, Icons.psychology_outlined, 'Psychologist'),
+          _buildNavItem(3, Icons.forum_outlined, 'Komunitas'),
         ],
       ),
     );
@@ -934,7 +933,7 @@ class _HomeScreenState extends State<HomeScreen> {
         } else if (index == 3) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const PsychologistScreen()),
+            MaterialPageRoute(builder: (context) => const CommunityScreen()),
           );
         } else {
           setState(() {

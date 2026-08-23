@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
+import 'package:mindcare/services/app_state_service.dart';
 import 'package:mindcare/views/login_screen.dart';
+import 'package:mindcare/views/main_navigation_screen.dart';
 import 'package:video_player/video_player.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -35,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
         if (_controller.value.isInitialized &&
             _controller.value.position >= _controller.value.duration &&
             !_hasNavigated) {
-          _navigateToLogin();
+          _navigateToNextScreen();
         }
       });
 
@@ -48,21 +50,28 @@ class _SplashScreenState extends State<SplashScreen> {
       // Fallback timer if video initialization fails
       Timer(const Duration(seconds: 3), () {
         if (mounted && !_hasNavigated) {
-          _navigateToLogin();
+          _navigateToNextScreen();
         }
       });
     }
   }
 
-  void _navigateToLogin() {
+  void _navigateToNextScreen() {
     if (_hasNavigated) return;
     _hasNavigated = true;
     _controller.pause();
 
+    Widget targetScreen;
+    if (AppStateService.instance.isLoggedIn) {
+      targetScreen = const MainNavigationScreen();
+    } else {
+      targetScreen = const LoginScreen();
+    }
+
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => targetScreen,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
             opacity: animation,
@@ -131,7 +140,7 @@ class _SplashScreenState extends State<SplashScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextButton(
-                  onPressed: _navigateToLogin,
+                  onPressed: _navigateToNextScreen,
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.black.withValues(alpha: 0.4),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

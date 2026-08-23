@@ -82,30 +82,99 @@ class UserProfile {
   });
 }
 
-class PsychologistAppointment {
-  final String id;
-  final String patientName;
-  final String patientAge;
-  final String patientAvatar;
-  final String date;
-  final String time;
-  final String issueSummary;
-  final int screeningScore;
-  final String screeningCategory;
-  final String consultationType; // 'Online Video Call' or 'Tatap Muka di Klinik'
-  String status; // 'Upcoming', 'Ongoing', 'Completed'
 
-  PsychologistAppointment({
+
+class CommunityComment {
+  final String id;
+  final String authorEmail;
+  final String authorPseudonym;
+  final String authorAvatar;
+  final String content;
+  final String date;
+
+  CommunityComment({
     required this.id,
-    required this.patientName,
-    required this.patientAge,
-    required this.patientAvatar,
+    this.authorEmail = '',
+    required this.authorPseudonym,
+    required this.authorAvatar,
+    required this.content,
     required this.date,
-    required this.time,
-    required this.issueSummary,
-    required this.screeningScore,
-    required this.screeningCategory,
-    required this.consultationType,
-    this.status = 'Upcoming',
   });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'author_email': authorEmail,
+        'author_pseudonym': authorPseudonym,
+        'author_avatar': authorAvatar,
+        'content': content,
+        'date': date,
+      };
+
+  factory CommunityComment.fromJson(Map<String, dynamic> json) => CommunityComment(
+        id: json['id'] as String? ?? '',
+        authorEmail: json['author_email'] as String? ?? '',
+        authorPseudonym: json['author_pseudonym'] as String? ?? 'Anonim',
+        authorAvatar: json['author_avatar'] as String? ?? '',
+        content: json['content'] as String? ?? '',
+        date: json['date'] as String? ?? '',
+      );
 }
+
+class CommunityPost {
+  final String id;
+  final String authorEmail;
+  final String authorPseudonym;
+  final String authorAvatar;
+  final String content;
+  final String categoryTag;
+  int likesCount;
+  int commentsCount;
+  final String date;
+  bool isLiked;
+  final List<CommunityComment> comments;
+
+  CommunityPost({
+    required this.id,
+    this.authorEmail = '',
+    required this.authorPseudonym,
+    required this.authorAvatar,
+    required this.content,
+    required this.categoryTag,
+    required this.likesCount,
+    required this.commentsCount,
+    required this.date,
+    this.isLiked = false,
+    List<CommunityComment>? comments,
+  }) : comments = comments ?? [];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'author_email': authorEmail,
+        'author_pseudonym': authorPseudonym,
+        'author_avatar': authorAvatar,
+        'content': content,
+        'category_tag': categoryTag,
+        'likes_count': likesCount,
+        'comments_count': commentsCount,
+        'date': date,
+        'is_liked': isLiked,
+        'comments': comments.map((c) => c.toJson()).toList(),
+      };
+
+  factory CommunityPost.fromJson(Map<String, dynamic> json) => CommunityPost(
+        id: json['id'] as String? ?? '',
+        authorEmail: json['author_email'] as String? ?? '',
+        authorPseudonym: json['author_pseudonym'] as String? ?? 'Anonim',
+        authorAvatar: json['author_avatar'] as String? ?? '',
+        content: json['content'] as String? ?? '',
+        categoryTag: json['category_tag'] as String? ?? '#Semua',
+        likesCount: json['likes_count'] as int? ?? 0,
+        commentsCount: json['comments_count'] as int? ?? (json['comments'] as List? ?? []).length,
+        date: json['date'] as String? ?? '',
+        isLiked: json['is_liked'] as bool? ?? false,
+        comments: (json['comments'] as List? ?? [])
+            .map((c) => CommunityComment.fromJson(Map<String, dynamic>.from(c)))
+            .toList(),
+      );
+}
+
