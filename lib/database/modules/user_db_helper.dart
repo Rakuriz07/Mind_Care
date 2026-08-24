@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
 class UserDbHelper {
@@ -6,15 +7,19 @@ class UserDbHelper {
   UserDbHelper(this.getDatabase);
 
   Future<Map<String, dynamic>?> getUserByEmail(String email) async {
-    final db = await getDatabase();
-    final cleanEmail = email.trim().toLowerCase();
-    final results = await db.query(
-      'users',
-      where: 'LOWER(email) = ?',
-      whereArgs: [cleanEmail],
-    );
-    if (results.isNotEmpty) {
-      return Map<String, dynamic>.from(results.first);
+    try {
+      final db = await getDatabase();
+      final cleanEmail = email.trim().toLowerCase();
+      final results = await db.query(
+        'users',
+        where: 'LOWER(email) = ?',
+        whereArgs: [cleanEmail],
+      );
+      if (results.isNotEmpty) {
+        return Map<String, dynamic>.from(results.first);
+      }
+    } catch (e) {
+      debugPrint('UserDbHelper.getUserByEmail warning: $e');
     }
     return null;
   }
@@ -25,17 +30,8 @@ class UserDbHelper {
     required String password,
     String? phone,
   }) async {
-    final db = await getDatabase();
     final cleanEmail = email.trim().toLowerCase();
     final cleanName = name.trim();
-
-    final existingUser = await getUserByEmail(cleanEmail);
-    if (existingUser != null) {
-      return {
-        'success': false,
-        'message': 'Email sudah terdaftar. Silakan masuk.',
-      };
-    }
 
     final newUser = {
       'id': 'usr_${DateTime.now().millisecondsSinceEpoch}',
@@ -50,8 +46,21 @@ class UserDbHelper {
       'created_at': DateTime.now().toIso8601String(),
     };
 
-    await db.insert('users', newUser, conflictAlgorithm: ConflictAlgorithm.replace);
-    await setActiveSession(cleanEmail);
+    try {
+      final db = await getDatabase();
+      final existingUser = await getUserByEmail(cleanEmail);
+      if (existingUser != null) {
+        return {
+          'success': false,
+          'message': 'Email sudah terdaftar. Silakan masuk.',
+        };
+      }
+
+      await db.insert('users', newUser, conflictAlgorithm: ConflictAlgorithm.replace);
+      await setActiveSession(cleanEmail);
+    } catch (e) {
+      debugPrint('UserDbHelper.registerPatient warning: $e');
+    }
 
     return {
       'success': true,
@@ -90,65 +99,112 @@ class UserDbHelper {
   }
 
   Future<void> setActiveSession(String email) async {
-    final db = await getDatabase();
-    await db.insert(
-      'active_session',
-      {
-        'id': 1,
-        'user_email': email,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    try {
+      final db = await getDatabase();
+      await db.insert(
+        'active_session',
+        {
+          'id': 1,
+          'user_email': email,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      debugPrint('UserDbHelper.setActiveSession warning: $e');
+    }
   }
 
   Future<Map<String, dynamic>?> getActiveUser() async {
-    final db = await getDatabase();
-    final sessionRes = await db.query('active_session', where: 'id = 1');
-    if (sessionRes.isNotEmpty) {
-      final email = sessionRes.first['user_email'] as String?;
-      if (email != null && email.isNotEmpty) {
-        return await getUserByEmail(email);
+    try {
+      final db = await getDatabase();
+      final sessionRes = await db.query('active_session', where: 'id = 1');
+      if (sessionRes.isNotEmpty) {
+        final email = sessionRes.first['user_email'] as String?;
+        if (email != null && email.isNotEmpty) {
+          return await getUserByEmail(email);
+        }
       }
+    } catch (e) {
+      debugPrint('UserDbHelper.getActiveUser warning: $e');
     }
     return null;
   }
 
   Future<void> logout() async {
-    final db = await getDatabase();
-    await db.update('active_session', {'user_email': ''}, where: 'id = 1');
+    try {
+      final db = await getDatabase();
+      await db.update('active_session', {'user_email': ''}, where: 'id = 1');
+    } catch (e) {
+      debugPrint('UserDbHelper.logout warning: $e');
+    }
   }
 
   Future<void> updateUser(String email, Map<String, dynamic> updates) async {
-    final db = await getDatabase();
-    final cleanEmail = email.trim().toLowerCase();
-    await db.update(
-      'users',
-      updates,
-      where: 'LOWER(email) = ?',
-      whereArgs: [cleanEmail],
-    );
-  }
-
-  Future<void> syncUser(Map<String, dynamic> userMap) async {
-    final db = await getDatabase();
-    final cleanEmail = (userMap['email'] ?? '').toString().trim().toLowerCase();
-    if (cleanEmail.isEmpty) return;
-
-    final existing = await getUserByEmail(cleanEmail);
-    if (existing == null) {
-      final newUser = Map<String, dynamic>.from(userMap);
-      newUser['email'] = cleanEmail;
-      await db.insert('users', newUser, conflictAlgorithm: ConflictAlgorithm.replace);
-    } else {
+    try {
+      final db = await getDatabase();
+      final cleanEmail = email.trim().toLowerCase();
       await db.update(
         'users',
-        userMap,
+        updates,
         where: 'LOWER(email) = ?',
         whereArgs: [cleanEmail],
       );
+    } catch (e) {
+      debugPrint('UserDbHelper.updateUser warning: $e');
     }
-    await setActiveSession(cleanEmail);
+  }
+
+  Future<void> syncUser(Map<String, dynamic> userMap) async {
+    final cleanEmail = (userMap['email'] ?? '').toString().trim().toLowerCase();
+    if (cleanEmail.isEmpty) return;
+
+    final validColumns = {
+      'id', 'name', 'email', 'password', 'phone', 'role',
+      'license_number', 'experience_years', 'specialization',
+      'hospital_clinic', 'consultation_fee', 'avatar_url',
+      'avatar_bytes_base64', 'member_since', 'is_online_accepting',
+      'rating', 'total_reviews', 'created_at'
+    };
+
+    final filteredMap = <String, dynamic>{};
+    userMap.forEach((key, value) {
+      if (validColumns.contains(key) && value != null) {
+        filteredMap[key] = value;
+      }
+    });
+
+    if (!filteredMap.containsKey('id')) {
+      filteredMap['id'] = 'usr_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    if (!filteredMap.containsKey('name')) {
+      filteredMap['name'] = 'Pengguna MindCare';
+    }
+    if (!filteredMap.containsKey('role')) {
+      filteredMap['role'] = 'patient';
+    }
+    if (!filteredMap.containsKey('password')) {
+      filteredMap['password'] = 'password123';
+    }
+    filteredMap['email'] = cleanEmail;
+
+    try {
+      final db = await getDatabase();
+      final existing = await getUserByEmail(cleanEmail);
+      if (existing == null) {
+        await db.insert('users', filteredMap, conflictAlgorithm: ConflictAlgorithm.replace);
+      } else {
+        await db.update(
+          'users',
+          filteredMap,
+          where: 'LOWER(email) = ?',
+          whereArgs: [cleanEmail],
+        );
+      }
+      await setActiveSession(cleanEmail);
+    } catch (e) {
+      debugPrint('UserDbHelper.syncUser warning: $e');
+    }
   }
 
   String _getCurrentMonthYear() {

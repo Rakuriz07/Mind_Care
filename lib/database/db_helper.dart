@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/database/modules/journal_db_helper.dart';
 import 'package:mindcare/database/modules/screening_db_helper.dart';
 import 'package:mindcare/database/modules/user_db_helper.dart';
@@ -30,11 +28,7 @@ class DbHelper {
     final dbPath = await getDatabasesPath();
     final path = p.join(dbPath, 'mindcare_app.db');
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDb,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDb);
   }
 
   Future<void> _createDb(Database db, int version) async {
@@ -110,7 +104,10 @@ class DbHelper {
 
   Future<void> _seedDatabase(Database db) async {
     // Clear all dummy records
-    await db.delete('users', where: "id IN ('usr_1', 'usr_2') OR role = 'psychologist'");
+    await db.delete(
+      'users',
+      where: "id IN ('usr_1', 'usr_2') OR role = 'psychologist'",
+    );
     await db.delete('journals', where: "id IN ('1', '2', '3')");
     await db.delete('screenings', where: "id IN ('1', '2', '3')");
   }
@@ -118,21 +115,25 @@ class DbHelper {
   // ========================================================
   // USER & AUTH METHODS (Delegated to UserDbHelper)
   // ========================================================
-  Future<Map<String, dynamic>?> getUserByEmail(String email) => userDb.getUserByEmail(email);
+  Future<Map<String, dynamic>?> getUserByEmail(String email) =>
+      userDb.getUserByEmail(email);
 
   Future<Map<String, dynamic>> registerPatient({
     required String name,
     required String email,
     required String password,
     String? phone,
-  }) =>
-      userDb.registerPatient(name: name, email: email, password: password, phone: phone);
+  }) => userDb.registerPatient(
+    name: name,
+    email: email,
+    password: password,
+    phone: phone,
+  );
 
   Future<Map<String, dynamic>> loginUser({
     required String email,
     required String password,
-  }) =>
-      userDb.loginUser(email: email, password: password);
+  }) => userDb.loginUser(email: email, password: password);
 
   Future<void> setActiveSession(String email) => userDb.setActiveSession(email);
 
@@ -143,7 +144,8 @@ class DbHelper {
   Future<void> updateUser(String email, Map<String, dynamic> updates) =>
       userDb.updateUser(email, updates);
 
-  Future<void> syncUser(Map<String, dynamic> userMap) => userDb.syncUser(userMap);
+  Future<void> syncUser(Map<String, dynamic> userMap) =>
+      userDb.syncUser(userMap);
 
   // ========================================================
   // JOURNAL METHODS (Delegated to JournalDbHelper)

@@ -64,8 +64,17 @@ class AppDatabase {
         final content = await _dbFile!.readAsString();
         if (content.isNotEmpty) {
           final Map<String, dynamic> dbData = jsonDecode(content);
-          _patientsTable = List<Map<String, dynamic>>.from(dbData['patients'] ?? []);
-          _activeSession = Map<String, dynamic>.from(dbData['active_session'] ?? {});
+          final loadedPatients = List<Map<String, dynamic>>.from(dbData['patients'] ?? []);
+          for (var loaded in loadedPatients) {
+            final loadedEmail = (loaded['email'] ?? '').toString().toLowerCase();
+            if (loadedEmail.isNotEmpty &&
+                !_patientsTable.any((p) => (p['email'] ?? '').toString().toLowerCase() == loadedEmail)) {
+              _patientsTable.add(loaded);
+            }
+          }
+          if (_activeSession.isEmpty) {
+            _activeSession = Map<String, dynamic>.from(dbData['active_session'] ?? {});
+          }
           _journalsTable = List<Map<String, dynamic>>.from(dbData['journals'] ?? []);
           _screeningsTable = List<Map<String, dynamic>>.from(dbData['screenings'] ?? []);
           _preferencesTable = Map<String, dynamic>.from(dbData['preferences'] ?? {});
@@ -177,6 +186,8 @@ class AppDatabase {
     required String password,
     String? phone,
   }) async {
+    if (!_isInitialized) await init();
+
     final cleanEmail = email.trim().toLowerCase();
     final cleanName = name.trim();
 
@@ -221,6 +232,8 @@ class AppDatabase {
     required String email,
     required String password,
   }) async {
+    if (!_isInitialized) await init();
+
     final cleanEmail = email.trim().toLowerCase();
 
     // Look up in patients table

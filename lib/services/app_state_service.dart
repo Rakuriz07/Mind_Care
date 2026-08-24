@@ -78,9 +78,8 @@ class AppStateService extends ChangeNotifier {
       _refreshUserData();
       if (res['user'] != null && res['user'] is Map<String, dynamic>) {
         await DbHelper.instance.syncUser(res['user'] as Map<String, dynamic>);
-      } else {
-        await DbHelper.instance.setActiveSession(_userProfile.email);
       }
+      await DbHelper.instance.setActiveSession(_userProfile.email);
       notifyListeners();
     }
     return res;
@@ -100,9 +99,8 @@ class AppStateService extends ChangeNotifier {
       _refreshUserData();
       if (res['user'] != null && res['user'] is Map<String, dynamic>) {
         await DbHelper.instance.syncUser(res['user'] as Map<String, dynamic>);
-      } else {
-        await DbHelper.instance.setActiveSession(_userProfile.email);
       }
+      await DbHelper.instance.setActiveSession(_userProfile.email);
       notifyListeners();
     }
     return res;

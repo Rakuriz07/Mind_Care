@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
-import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/kuesioner_screening_screen.dart';
 import 'package:mindcare/views/profile_screen.dart';
 
