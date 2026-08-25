@@ -19,7 +19,7 @@ class AuthController extends ChangeNotifier {
   UserProfile get userProfile => AppStateService.instance.userProfile;
   bool get isPsychologist => AppStateService.instance.userProfile.role == 'psychologist';
 
-  /// Login General Patient User
+  // --- [READ] Memeriksa kredensial login user ---
   Future<Map<String, dynamic>> loginPatient({
     required String email,
     required String password,
@@ -42,7 +42,7 @@ class AuthController extends ChangeNotifier {
     return result;
   }
 
-  /// Register New Patient Account
+  // --- [CREATE] Mendaftarkan akun user baru ---
   Future<Map<String, dynamic>> registerPatient({
     required String name,
     required String email,
@@ -74,7 +74,7 @@ class AuthController extends ChangeNotifier {
     return result;
   }
 
-  /// Logout Active User Session
+  // --- [DELETE / UPDATE] Reset sesi aktif user (Logout) ---
   Future<void> logout() async {
     _setLoading(true);
     await DbHelper.instance.logout();
@@ -82,7 +82,7 @@ class AuthController extends ChangeNotifier {
     _setLoading(false);
   }
 
-  /// Update Active User Profile Details
+  // --- [UPDATE] Memperbarui data profil user ---
   void updateProfile({
     String? name,
     String? email,
@@ -106,7 +106,7 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update Profile Avatar Image
+  // --- [UPDATE] Memperbarui foto avatar profil ---
   void updateAvatar(Uint8List bytes, [File? file]) {
     AppStateService.instance.updateAvatarBytes(bytes, file);
     notifyListeners();

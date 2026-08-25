@@ -5,6 +5,7 @@ class ScreeningDbHelper {
 
   ScreeningDbHelper(this.getDatabase);
 
+  // --- [READ] Membaca riwayat hasil skrining berdasarkan email user ---
   Future<List<Map<String, dynamic>>> getScreenings(String userEmail) async {
     final db = await getDatabase();
     final cleanEmail = userEmail.trim().toLowerCase();
@@ -16,11 +17,13 @@ class ScreeningDbHelper {
     );
   }
 
+  // --- [CREATE / UPDATE] Menyimpan catatan hasil skrining baru ---
   Future<void> insertScreening(Map<String, dynamic> screening) async {
     final db = await getDatabase();
     await db.insert('screenings', screening, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  // --- [DELETE] Menghapus data skrining berdasarkan ID ---
   Future<void> deleteScreening(String id) async {
     final db = await getDatabase();
     await db.delete('screenings', where: 'id = ?', whereArgs: [id]);

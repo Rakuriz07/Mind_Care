@@ -6,6 +6,7 @@ class UserDbHelper {
 
   UserDbHelper(this.getDatabase);
 
+  // --- [READ] Membaca data user dari tabel SQLite `users` berdasarkan email ---
   Future<Map<String, dynamic>?> getUserByEmail(String email) async {
     try {
       final db = await getDatabase();
@@ -24,6 +25,7 @@ class UserDbHelper {
     return null;
   }
 
+  // --- [CREATE] Mendaftarkan user baru ke tabel SQLite `users` ---
   Future<Map<String, dynamic>> registerPatient({
     required String name,
     required String email,
@@ -69,6 +71,7 @@ class UserDbHelper {
     };
   }
 
+  // --- [READ] Memeriksa kredensial login user di SQLite ---
   Future<Map<String, dynamic>> loginUser({
     required String email,
     required String password,
@@ -98,6 +101,7 @@ class UserDbHelper {
     };
   }
 
+  // --- [CREATE / UPDATE] Menyimpan / memperbarui email sesi aktif ---
   Future<void> setActiveSession(String email) async {
     try {
       final db = await getDatabase();
@@ -115,6 +119,7 @@ class UserDbHelper {
     }
   }
 
+  // --- [READ] Membaca data user yang sedang aktif dari sesi SQLite ---
   Future<Map<String, dynamic>?> getActiveUser() async {
     try {
       final db = await getDatabase();
@@ -131,6 +136,7 @@ class UserDbHelper {
     return null;
   }
 
+  // --- [UPDATE / DELETE] Mengosongkan sesi aktif saat logout ---
   Future<void> logout() async {
     try {
       final db = await getDatabase();
@@ -140,6 +146,7 @@ class UserDbHelper {
     }
   }
 
+  // --- [UPDATE] Memperbarui data profil user di tabel SQLite ---
   Future<void> updateUser(String email, Map<String, dynamic> updates) async {
     try {
       final db = await getDatabase();
@@ -155,6 +162,7 @@ class UserDbHelper {
     }
   }
 
+  // --- [CREATE / UPDATE] Menyinkronkan data user dari AppDatabase ke SQLite ---
   Future<void> syncUser(Map<String, dynamic> userMap) async {
     final cleanEmail = (userMap['email'] ?? '').toString().trim().toLowerCase();
     if (cleanEmail.isEmpty) return;

@@ -179,7 +179,7 @@ class AppDatabase {
   // AUTHENTICATION & SEPARATE DATABASE METHODS
   // ==========================================
 
-  /// Register a new Patient / General User into `_patientsTable`
+  // --- [CREATE] Mendaftarkan pasien/user baru ke dalam list in-memory dan simpan ke file JSON ---
   Future<Map<String, dynamic>> registerPatient({
     required String name,
     required String email,
@@ -227,7 +227,7 @@ class AppDatabase {
     };
   }
 
-  /// Login Patient from `_patientsTable`
+  // --- [READ] Memeriksa data login user pada pasien terdaftar ---
   Future<Map<String, dynamic>> loginPatient({
     required String email,
     required String password,
@@ -272,7 +272,7 @@ class AppDatabase {
     await _flush();
   }
 
-  // --- Active User Profile Mapping ---
+  // --- [READ] Membaca data profil user yang sedang aktif ---
   UserProfile getUserProfile() {
     Uint8List? avatarBytes;
     if (_activeSession['avatar_bytes_base64'] != null) {
@@ -293,6 +293,7 @@ class AppDatabase {
     );
   }
 
+  // --- [UPDATE] Memperbarui data profil user yang aktif ---
   Future<void> saveUserProfile({
     String? name,
     String? email,
@@ -332,7 +333,7 @@ class AppDatabase {
     await _flush();
   }
 
-  /// Change Password for logged in user
+  // --- [UPDATE] Mengubah kata sandi user yang sedang login ---
   Future<Map<String, dynamic>> changePassword({
     required String oldPassword,
     required String newPassword,
@@ -371,9 +372,7 @@ class AppDatabase {
     };
   }
 
-
-
-  // --- Journals CRUD (Filtered per Logged-in User) ---
+  // --- [READ] Jurnal: Membaca daftar jurnal pengguna ---
   List<JournalEntry> getJournals([String? userEmail]) {
     final targetEmail = (userEmail ?? _activeSession['email'] ?? '').toString().toLowerCase().trim();
     if (targetEmail.isEmpty) return [];
@@ -398,6 +397,7 @@ class AppDatabase {
     }).toList();
   }
 
+  // --- [CREATE] Jurnal: Menambahkan catatan jurnal baru ---
   Future<void> insertJournal(JournalEntry entry) async {
     final activeEmail = entry.userEmail.isNotEmpty
         ? entry.userEmail
@@ -419,12 +419,13 @@ class AppDatabase {
     await _flush();
   }
 
+  // --- [DELETE] Jurnal: Menghapus catatan jurnal berdasarkan ID ---
   Future<void> deleteJournal(String id) async {
     _journalsTable.removeWhere((item) => item['id'] == id);
     await _flush();
   }
 
-  // --- Screenings CRUD (Filtered per Logged-in User) ---
+  // --- [READ] Skrining: Membaca daftar riwayat skrining pengguna ---
   List<ScreeningRecord> getScreenings([String? userEmail]) {
     final targetEmail = (userEmail ?? _activeSession['email'] ?? '').toString().toLowerCase().trim();
     if (targetEmail.isEmpty) return [];
@@ -449,6 +450,7 @@ class AppDatabase {
     }).toList();
   }
 
+  // --- [CREATE] Skrining: Menyimpan catatan hasil skrining baru ---
   Future<void> insertScreening(ScreeningRecord record) async {
     final activeEmail = record.userEmail.isNotEmpty
         ? record.userEmail
@@ -473,6 +475,7 @@ class AppDatabase {
     await _flush();
   }
 
+  // --- [DELETE] Skrining: Menghapus catatan hasil skrining berdasarkan ID ---
   Future<void> deleteScreening(String id) async {
     final cleanId = id.trim().toLowerCase();
     _screeningsTable.removeWhere((item) => (item['id'] ?? '').toString().trim().toLowerCase() == cleanId);
@@ -499,23 +502,26 @@ class AppDatabase {
 
   Map<String, dynamic> getPreferences() => Map.unmodifiable(_preferencesTable);
 
-  // --- Anonymous Community CRUD ---
+  // --- [READ] Komunitas: Membaca daftar postingan komunitas ---
   List<CommunityPost> getCommunityPosts() {
     return List<CommunityPost>.from(_communityPostsTable);
   }
 
+  // --- [CREATE] Komunitas: Membuat postingan komunitas baru ---
   Future<void> insertCommunityPost(CommunityPost post) async {
     _communityPostsTable.insert(0, post);
     _notifyCommunityChanged();
     await _flush();
   }
 
+  // --- [DELETE] Komunitas: Menghapus postingan komunitas berdasarkan ID ---
   Future<void> deleteCommunityPost(String postId) async {
     _communityPostsTable.removeWhere((p) => p.id == postId);
     _notifyCommunityChanged();
     await _flush();
   }
 
+  // --- [DELETE] Komunitas: Menghapus komentar postingan ---
   Future<void> deleteCommunityComment(String postId, String commentId) async {
     for (var post in _communityPostsTable) {
       if (post.id == postId) {

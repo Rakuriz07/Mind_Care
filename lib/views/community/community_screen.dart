@@ -29,23 +29,28 @@ class _CommunityScreenState extends State<CommunityScreen> {
   final List<Map<String, String>> _pseudonyms = [
     {
       'name': 'PejuangTenang',
-      'avatar': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+      'avatar':
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     },
     {
       'name': 'SahabatJiwa',
-      'avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+      'avatar':
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     },
     {
       'name': 'BintangMalam',
-      'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+      'avatar':
+          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
     },
     {
       'name': 'LenteraHati',
-      'avatar': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
+      'avatar':
+          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
     },
     {
       'name': 'MentariPagi',
-      'avatar': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80',
+      'avatar':
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80',
     },
   ];
 
@@ -61,10 +66,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        _showSnackbar('Call Center 119: Layanan kesehatan mental Kemenkes RI aktif 24/7.');
+        _showSnackbar(
+          'Call Center 119: Layanan kesehatan mental Kemenkes RI aktif 24/7.',
+        );
       }
     } catch (_) {
-      _showSnackbar('Call Center 119: Layanan kesehatan mental Kemenkes RI aktif 24/7.');
+      _showSnackbar(
+        'Call Center 119: Layanan kesehatan mental Kemenkes RI aktif 24/7.',
+      );
     }
   }
 
@@ -74,7 +83,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
@@ -89,7 +101,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
     double radius = 18,
   }) {
     final currentUser = AppStateService.instance.userProfile;
-    if (email.isNotEmpty && email == currentUser.email && currentUser.avatarBytes != null) {
+    if (email.isNotEmpty &&
+        email == currentUser.email &&
+        currentUser.avatarBytes != null) {
       return CircleAvatar(
         radius: radius,
         backgroundImage: MemoryImage(currentUser.avatarBytes!),
@@ -129,10 +143,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final activeAuthorName =
-                useRealIdentity ? currentUser.name : selectedPseudonym['name']!;
-            final activeAvatarUrl =
-                useRealIdentity ? currentUser.avatarUrl : selectedPseudonym['avatar']!;
+            final activeAuthorName = useRealIdentity
+                ? currentUser.name
+                : selectedPseudonym['name']!;
+            final activeAvatarUrl = useRealIdentity
+                ? currentUser.avatarUrl
+                : selectedPseudonym['avatar']!;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -171,13 +187,20 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.secondaryContainer.withValues(alpha: 0.5),
+                              color: AppColors.secondaryContainer.withValues(
+                                alpha: 0.5,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              useRealIdentity ? 'Identitas Asli' : '100% Anonim',
+                              useRealIdentity
+                                  ? 'Identitas Asli'
+                                  : '100% Anonim',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -210,13 +233,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               selectedColor: AppColors.primaryContainer,
                               labelStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
-                                fontWeight: !useRealIdentity ? FontWeight.bold : FontWeight.w500,
+                                fontWeight: !useRealIdentity
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
                                 color: !useRealIdentity
                                     ? AppColors.onPrimaryContainer
                                     : AppColors.onSurfaceVariant,
                               ),
                               onSelected: (val) {
-                                if (val) setSheetState(() => useRealIdentity = false);
+                                if (val)
+                                  setSheetState(() => useRealIdentity = false);
                               },
                             ),
                           ),
@@ -230,11 +256,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               selectedColor: AppColors.secondaryContainer,
                               labelStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
-                                fontWeight: useRealIdentity ? FontWeight.bold : FontWeight.w500,
-                                color: useRealIdentity ? AppColors.secondary : AppColors.onSurfaceVariant,
+                                fontWeight: useRealIdentity
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: useRealIdentity
+                                    ? AppColors.secondary
+                                    : AppColors.onSurfaceVariant,
                               ),
                               onSelected: (val) {
-                                if (val) setSheetState(() => useRealIdentity = true);
+                                if (val)
+                                  setSheetState(() => useRealIdentity = true);
                               },
                             ),
                           ),
@@ -257,7 +288,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: _pseudonyms.map((p) {
-                              final isSelected = selectedPseudonym['name'] == p['name'];
+                              final isSelected =
+                                  selectedPseudonym['name'] == p['name'];
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8.0),
                                 child: ChoiceChip(
@@ -269,13 +301,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   selectedColor: AppColors.primaryContainer,
                                   labelStyle: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
                                     color: isSelected
                                         ? AppColors.onPrimaryContainer
                                         : AppColors.onSurface,
                                   ),
                                   onSelected: (val) {
-                                    if (val) setSheetState(() => selectedPseudonym = p);
+                                    if (val)
+                                      setSheetState(
+                                        () => selectedPseudonym = p,
+                                      );
                                   },
                                 ),
                               );
@@ -298,7 +335,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: _categories.where((c) => c != 'Semua').map((tag) {
+                        children: _categories.where((c) => c != 'Semua').map((
+                          tag,
+                        ) {
                           final isSelected = selectedTag == tag;
                           return ChoiceChip(
                             label: Text(tag),
@@ -306,8 +345,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             selectedColor: AppColors.secondaryContainer,
                             labelStyle: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? AppColors.secondary : AppColors.onSurfaceVariant,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppColors.secondary
+                                  : AppColors.onSurfaceVariant,
                             ),
                             onSelected: (val) {
                               if (val) setSheetState(() => selectedTag = tag);
@@ -325,16 +368,26 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         decoration: InputDecoration(
                           hintText:
                               'Tuliskan perasaan, beban pikiran, atau kata penyemangat yang ingin Anda bagikan...',
-                          hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.outline),
+                          hintStyle: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: AppColors.outline,
+                          ),
                           filled: true,
                           fillColor: AppColors.surfaceCanvas,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.outlineVariant.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
@@ -347,7 +400,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           onPressed: () {
                             final content = contentController.text.trim();
                             if (content.isEmpty) {
-                              _showSnackbar('Silakan tulis cerita Anda sebelum mengirim.');
+                              _showSnackbar(
+                                'Silakan tulis cerita Anda sebelum mengirim.',
+                              );
                               return;
                             }
 
@@ -366,7 +421,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
                             AppStateService.instance.addCommunityPost(newPost);
                             Navigator.pop(context);
-                            _showSnackbar('Cerita Anda berhasil dibagikan ke komunitas ✨');
+                            _showSnackbar(
+                              'Cerita Anda berhasil dibagikan ke komunitas ✨',
+                            );
                           },
                           icon: const Icon(Icons.send_rounded, size: 18),
                           label: Text(
@@ -379,7 +436,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                         ),
                       ),
@@ -402,11 +461,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Hapus Cerita Ini?',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
         content: Text(
           'Cerita Anda akan dihapus secara permanen dari komunitas.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.onSurfaceVariant),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: AppColors.onSurfaceVariant,
+          ),
         ),
         actions: [
           TextButton(
@@ -420,7 +485,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () {
               AppStateService.instance.deleteCommunityPost(post.id);
@@ -439,7 +506,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   void _sharePost(CommunityPost post) {
     Clipboard.setData(
-      ClipboardData(text: '${post.authorPseudonym} di MindCare Komunitas:\n"${post.content}"'),
+      ClipboardData(
+        text:
+            '${post.authorPseudonym} di MindCare Komunitas:\n"${post.content}"',
+      ),
     );
     _showSnackbar('Pesan cerita berhasil disalin ke clipboard 📋');
   }
@@ -460,10 +530,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final activeAuthorName =
-                useRealIdentity ? currentUser.name : selectedPseudonym['name']!;
-            final activeAvatarUrl =
-                useRealIdentity ? currentUser.avatarUrl : selectedPseudonym['avatar']!;
+            final activeAuthorName = useRealIdentity
+                ? currentUser.name
+                : selectedPseudonym['name']!;
+            final activeAvatarUrl = useRealIdentity
+                ? currentUser.avatarUrl
+                : selectedPseudonym['avatar']!;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -582,21 +654,29 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           child: ListView.separated(
                             shrinkWrap: true,
                             itemCount: post.comments.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 8),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 8),
                             itemBuilder: (context, index) {
                               final c = post.comments[index];
                               final isMyComment =
-                                  c.authorEmail.isNotEmpty && c.authorEmail == currentUser.email;
+                                  c.authorEmail.isNotEmpty &&
+                                  c.authorEmail == currentUser.email;
 
                               return Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: isMyComment
-                                      ? AppColors.primaryContainer.withValues(alpha: 0.3)
+                                      ? AppColors.primaryContainer.withValues(
+                                          alpha: 0.3,
+                                        )
                                       : AppColors.surfaceCanvas,
                                   borderRadius: BorderRadius.circular(12),
                                   border: isMyComment
-                                      ? Border.all(color: AppColors.primary.withValues(alpha: 0.3))
+                                      ? Border.all(
+                                          color: AppColors.primary.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                        )
                                       : null,
                                 ),
                                 child: Row(
@@ -610,37 +690,53 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Row(
                                                 children: [
                                                   Text(
                                                     c.authorPseudonym,
-                                                    style: GoogleFonts.plusJakartaSans(
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: AppColors.primary,
-                                                    ),
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              AppColors.primary,
+                                                        ),
                                                   ),
                                                   if (isMyComment) ...[
                                                     const SizedBox(width: 4),
                                                     Container(
-                                                      padding: const EdgeInsets.symmetric(
-                                                          horizontal: 6, vertical: 1),
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 6,
+                                                            vertical: 1,
+                                                          ),
                                                       decoration: BoxDecoration(
-                                                        color: AppColors.primary,
-                                                        borderRadius: BorderRadius.circular(8),
+                                                        color:
+                                                            AppColors.primary,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
                                                       ),
                                                       child: Text(
                                                         'Anda',
-                                                        style: GoogleFonts.plusJakartaSans(
-                                                          fontSize: 8,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: Colors.white,
-                                                        ),
+                                                        style:
+                                                            GoogleFonts.plusJakartaSans(
+                                                              fontSize: 8,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
                                                       ),
                                                     ),
                                                   ],
@@ -650,23 +746,33 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                                 children: [
                                                   Text(
                                                     c.date,
-                                                    style: GoogleFonts.plusJakartaSans(
-                                                      fontSize: 9,
-                                                      color: AppColors.outline,
-                                                    ),
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 9,
+                                                          color:
+                                                              AppColors.outline,
+                                                        ),
                                                   ),
                                                   if (isMyComment ||
-                                                      post.authorEmail == currentUser.email) ...[
+                                                      post.authorEmail ==
+                                                          currentUser
+                                                              .email) ...[
                                                     const SizedBox(width: 4),
                                                     InkWell(
                                                       onTap: () {
                                                         AppStateService.instance
-                                                            .deleteCommunityComment(post.id, c.id);
+                                                            .deleteCommunityComment(
+                                                              post.id,
+                                                              c.id,
+                                                            );
                                                         setSheetState(() {});
-                                                        _showSnackbar('Komentar berhasil dihapus 🗑️');
+                                                        _showSnackbar(
+                                                          'Komentar berhasil dihapus 🗑️',
+                                                        );
                                                       },
                                                       child: const Icon(
-                                                        Icons.delete_outline_rounded,
+                                                        Icons
+                                                            .delete_outline_rounded,
                                                         size: 14,
                                                         color: AppColors.error,
                                                       ),
@@ -700,11 +806,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         children: [
                           InkWell(
                             onTap: () {
-                              setSheetState(() => useRealIdentity = !useRealIdentity);
+                              setSheetState(
+                                () => useRealIdentity = !useRealIdentity,
+                              );
                             },
                             borderRadius: BorderRadius.circular(10),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: useRealIdentity
                                     ? AppColors.secondaryContainer
@@ -712,7 +823,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
-                                useRealIdentity ? 'Kirim sbg ${currentUser.name}' : 'Kirim sbg Anonim',
+                                useRealIdentity
+                                    ? 'Kirim sbg ${currentUser.name}'
+                                    : 'Kirim sbg Anonim',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -736,12 +849,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               style: GoogleFonts.plusJakartaSans(fontSize: 13),
                               decoration: InputDecoration(
                                 hintText: 'Beri kata penyemangat...',
-                                hintStyle:
-                                    GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.outline),
+                                hintStyle: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: AppColors.outline,
+                                ),
                                 filled: true,
                                 fillColor: AppColors.surfaceCanvas,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
                                   borderSide: BorderSide.none,
@@ -764,12 +881,20 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 date: 'Baru saja',
                               );
 
-                              AppStateService.instance.addCommentToPost(post.id, newComment);
+                              AppStateService.instance.addCommentToPost(
+                                post.id,
+                                newComment,
+                              );
                               commentController.clear();
                               setSheetState(() {});
-                              _showSnackbar('Komentar dukungan Anda berhasil dikirim! ❤️');
+                              _showSnackbar(
+                                'Komentar dukungan Anda berhasil dikirim! ❤️',
+                              );
                             },
-                            icon: const Icon(Icons.send_rounded, color: AppColors.primary),
+                            icon: const Icon(
+                              Icons.send_rounded,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ],
                       ),
@@ -789,13 +914,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return StreamBuilder<List<CommunityPost>>(
       stream: AppStateService.instance.realTimeCommunityStream,
       builder: (context, snapshot) {
-        final allPosts = snapshot.data ?? AppStateService.instance.realTimeCommunityPosts;
+        final allPosts =
+            snapshot.data ?? AppStateService.instance.realTimeCommunityPosts;
         final query = _searchController.text.toLowerCase().trim();
 
         final filteredPosts = allPosts.where((post) {
           final matchesCategory =
-              _selectedCategory == 'Semua' || post.categoryTag == _selectedCategory;
-          final matchesQuery = query.isEmpty ||
+              _selectedCategory == 'Semua' ||
+              post.categoryTag == _selectedCategory;
+          final matchesQuery =
+              query.isEmpty ||
               post.content.toLowerCase().contains(query) ||
               post.authorPseudonym.toLowerCase().contains(query) ||
               post.categoryTag.toLowerCase().contains(query);
@@ -813,7 +941,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 // Scrollable Feed & Content
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 12.0,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -866,7 +997,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: filteredPosts.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 14),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 14),
                             itemBuilder: (context, index) {
                               return _buildPostCard(filteredPosts[index]);
                             },
@@ -901,9 +1033,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceCanvas,
-      ),
+      decoration: const BoxDecoration(color: AppColors.surfaceCanvas),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -990,7 +1120,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.shield_rounded, color: AppColors.primary, size: 20),
+            child: const Icon(
+              Icons.shield_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1076,10 +1210,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isSelected ? (g['bgColor'] as Color) : AppColors.surfaceCard,
+                color: isSelected
+                    ? (g['bgColor'] as Color)
+                    : AppColors.surfaceCard,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: isSelected ? (g['color'] as Color) : (g['color'] as Color).withValues(alpha: 0.3),
+                  color: isSelected
+                      ? (g['color'] as Color)
+                      : (g['color'] as Color).withValues(alpha: 0.3),
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -1095,10 +1233,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           color: g['bgColor'] as Color,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.groups_rounded, color: g['color'] as Color, size: 18),
+                        child: Icon(
+                          Icons.groups_rounded,
+                          color: g['color'] as Color,
+                          size: 18,
+                        ),
                       ),
                       if (isSelected)
-                        Icon(Icons.check_circle_rounded, color: g['color'] as Color, size: 16),
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: g['color'] as Color,
+                          size: 16,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -1136,18 +1282,32 @@ class _CommunityScreenState extends State<CommunityScreen> {
           style: GoogleFonts.plusJakartaSans(fontSize: 13),
           decoration: InputDecoration(
             hintText: 'Cari kata kunci cerita, topik, atau nama samaran...',
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.outline),
-            prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.outline),
+            hintStyle: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: AppColors.outline,
+            ),
+            prefixIcon: const Icon(
+              Icons.search,
+              size: 20,
+              color: AppColors.outline,
+            ),
             filled: true,
             fillColor: AppColors.surfaceCard,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 10,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+              borderSide: BorderSide(
+                color: AppColors.outlineVariant.withValues(alpha: 0.3),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+              borderSide: BorderSide(
+                color: AppColors.outlineVariant.withValues(alpha: 0.3),
+              ),
             ),
           ),
         ),
@@ -1168,9 +1328,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   labelStyle: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+                    color: isSelected
+                        ? Colors.white
+                        : AppColors.onSurfaceVariant,
                   ),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               );
             }).toList(),
@@ -1182,7 +1346,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   Widget _buildPostCard(CommunityPost post) {
     final currentUser = AppStateService.instance.userProfile;
-    final isMyPost = post.authorEmail.isNotEmpty && post.authorEmail == currentUser.email;
+    final isMyPost =
+        post.authorEmail.isNotEmpty && post.authorEmail == currentUser.email;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1236,7 +1401,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         const SizedBox(width: 4),
                         if (isMyPost)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(8),
@@ -1251,7 +1419,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             ),
                           )
                         else
-                          const Icon(Icons.shield_outlined, size: 14, color: AppColors.secondary),
+                          const Icon(
+                            Icons.shield_outlined,
+                            size: 14,
+                            color: AppColors.secondary,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -1268,9 +1440,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.secondaryContainer.withValues(alpha: 0.4),
+                            color: AppColors.secondaryContainer.withValues(
+                              alpha: 0.4,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -1290,10 +1467,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
               const SizedBox(width: 8),
               if (isMyPost)
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert_rounded, size: 18, color: AppColors.outline),
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    size: 18,
+                    color: AppColors.outline,
+                  ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   onSelected: (val) {
                     if (val == 'delete') _confirmDeletePost(post);
                     if (val == 'share') _sharePost(post);
@@ -1303,9 +1486,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       value: 'share',
                       child: Row(
                         children: [
-                          const Icon(Icons.copy_rounded, size: 16, color: AppColors.onSurface),
+                          const Icon(
+                            Icons.copy_rounded,
+                            size: 16,
+                            color: AppColors.onSurface,
+                          ),
                           const SizedBox(width: 8),
-                          Text('Salin Teks', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
+                          Text(
+                            'Salin Teks',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
@@ -1313,9 +1503,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       value: 'delete',
                       child: Row(
                         children: [
-                          const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                          const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 16,
+                            color: AppColors.error,
+                          ),
                           const SizedBox(width: 8),
-                          Text('Hapus Cerita', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.error)),
+                          Text(
+                            'Hapus Cerita',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: AppColors.error,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1325,7 +1525,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon: const Icon(Icons.share_outlined, size: 16, color: AppColors.outline),
+                  icon: const Icon(
+                    Icons.share_outlined,
+                    size: 16,
+                    color: AppColors.outline,
+                  ),
                   onPressed: () => _sharePost(post),
                 ),
             ],
@@ -1356,14 +1560,21 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 4,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                          post.isLiked
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
                           size: 18,
-                          color: post.isLiked ? AppColors.error : AppColors.outline,
+                          color: post.isLiked
+                              ? AppColors.error
+                              : AppColors.outline,
                         ),
                         const SizedBox(width: 4),
                         Flexible(
@@ -1373,8 +1584,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
-                              fontWeight: post.isLiked ? FontWeight.bold : FontWeight.w500,
-                              color: post.isLiked ? AppColors.error : AppColors.onSurfaceVariant,
+                              fontWeight: post.isLiked
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: post.isLiked
+                                  ? AppColors.error
+                                  : AppColors.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -1389,11 +1604,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   onTap: () => _showCommentSheet(post),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 4,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.mode_comment_outlined, size: 18, color: AppColors.primary),
+                        const Icon(
+                          Icons.mode_comment_outlined,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -1427,7 +1649,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         children: [
@@ -1477,7 +1701,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
         ],

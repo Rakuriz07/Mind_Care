@@ -16,9 +16,11 @@ class ScreeningController extends ChangeNotifier {
   int get currentQuestionIndex => _currentQuestionIndex;
   int get answeredCount => _answers.length;
 
+  // --- [READ] Membaca riwayat skrining user ---
   List<ScreeningRecord> get screeningHistory =>
       AppStateService.instance.screeningHistory;
 
+  // --- [READ] Membaca skor skrining terbaru ---
   int get latestScore => AppStateService.instance.latestScreeningScore;
 
   /// Answer a question by index and point value
@@ -57,7 +59,7 @@ class ScreeningController extends ChangeNotifier {
     return percentage.clamp(0, 100);
   }
 
-  /// Complete screening session and record result
+  // --- [CREATE] Menyelesaikan skrining dan menyimpan hasilnya ---
   Future<ScreeningRecord> completeScreening({
     required int totalQuestions,
   }) async {

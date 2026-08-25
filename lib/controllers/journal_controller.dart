@@ -15,6 +15,7 @@ class JournalController extends ChangeNotifier {
   String get searchQuery => _searchQuery;
   String get selectedMoodFilter => _selectedMoodFilter;
 
+  // --- [READ] Membaca list jurnal yang difilter ---
   List<JournalEntry> get journals {
     final allJournals = AppStateService.instance.journals;
     return allJournals.where((j) {
@@ -31,7 +32,7 @@ class JournalController extends ChangeNotifier {
     }).toList();
   }
 
-  /// Add a new journal entry for active user
+  // --- [CREATE] Menambahkan jurnal baru ---
   Future<void> addJournal({
     required String title,
     required String content,
@@ -75,7 +76,7 @@ class JournalController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Delete a journal entry by ID
+  // --- [DELETE] Menghapus jurnal berdasarkan ID ---
   Future<void> deleteJournal(String id) async {
     AppStateService.instance.deleteJournal(id);
     await DbHelper.instance.deleteJournal(id);

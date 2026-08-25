@@ -190,7 +190,7 @@ class AppStateService extends ChangeNotifier {
 
 
 
-  // --- Journal Operations (Attached to Logged-in User) ---
+  // --- [CREATE] Jurnal: Menambahkan data jurnal baru ke state & database ---
   void addJournal(JournalEntry entry) {
     final entryWithUser = JournalEntry(
       id: entry.id,
@@ -209,13 +209,14 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- [DELETE] Jurnal: Menghapus data jurnal dari state & database ---
   void deleteJournal(String id) {
     _journals.removeWhere((item) => item.id == id);
     AppDatabase.instance.deleteJournal(id);
     notifyListeners();
   }
 
-  // --- Screening Operations (Attached to Logged-in User) ---
+  // --- [CREATE] Skrining: Menyimpan catatan hasil skrining baru ---
   void addScreeningRecord(ScreeningRecord record) {
     final recordWithUser = ScreeningRecord(
       id: record.id,
@@ -234,6 +235,7 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- [DELETE] Skrining: Menghapus catatan skrining berdasarkan indeks ---
   Future<void> deleteScreeningRecord(int index) async {
     if (index >= 0 && index < _screeningHistory.length) {
       final record = _screeningHistory[index];
@@ -243,6 +245,7 @@ class AppStateService extends ChangeNotifier {
     }
   }
 
+  // --- [DELETE] Skrining: Menghapus catatan skrining berdasarkan ID ---
   Future<void> deleteScreeningRecordById(String id) async {
     final cleanId = id.trim().toLowerCase();
     _screeningHistory.removeWhere((item) => item.id.trim().toLowerCase() == cleanId);
@@ -265,17 +268,19 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Anonymous Community Operations ---
+  // --- [CREATE] Komunitas: Membuat postingan baru ---
   void addCommunityPost(CommunityPost post) {
     AppDatabase.instance.insertCommunityPost(post);
     notifyListeners();
   }
 
+  // --- [DELETE] Komunitas: Menghapus postingan ---
   void deleteCommunityPost(String postId) {
     AppDatabase.instance.deleteCommunityPost(postId);
     notifyListeners();
   }
 
+  // --- [DELETE] Komunitas: Menghapus komentar ---
   void deleteCommunityComment(String postId, String commentId) {
     AppDatabase.instance.deleteCommunityComment(postId, commentId);
     notifyListeners();

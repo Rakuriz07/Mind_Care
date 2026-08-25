@@ -5,6 +5,7 @@ class JournalDbHelper {
 
   JournalDbHelper(this.getDatabase);
 
+  // --- [READ] Membaca seluruh data jurnal berdasarkan email user ---
   Future<List<Map<String, dynamic>>> getJournals(String userEmail) async {
     final db = await getDatabase();
     final cleanEmail = userEmail.trim().toLowerCase();
@@ -16,11 +17,13 @@ class JournalDbHelper {
     );
   }
 
+  // --- [CREATE / UPDATE] Menambahkan jurnal baru atau memperbarui jika ID sudah ada ---
   Future<void> insertJournal(Map<String, dynamic> journal) async {
     final db = await getDatabase();
     await db.insert('journals', journal, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  // --- [DELETE] Menghapus data jurnal berdasarkan ID ---
   Future<void> deleteJournal(String id) async {
     final db = await getDatabase();
     await db.delete('journals', where: 'id = ?', whereArgs: [id]);
