@@ -125,6 +125,7 @@ class CommunityPost {
   final String authorEmail;
   final String authorPseudonym;
   final String authorAvatar;
+  final String authorMood;
   final String content;
   final String categoryTag;
   int likesCount;
@@ -138,6 +139,7 @@ class CommunityPost {
     this.authorEmail = '',
     required this.authorPseudonym,
     required this.authorAvatar,
+    this.authorMood = 'Butuh Teman 🫂',
     required this.content,
     required this.categoryTag,
     required this.likesCount,
@@ -152,6 +154,7 @@ class CommunityPost {
         'author_email': authorEmail,
         'author_pseudonym': authorPseudonym,
         'author_avatar': authorAvatar,
+        'author_mood': authorMood,
         'content': content,
         'category_tag': categoryTag,
         'likes_count': likesCount,
@@ -166,6 +169,7 @@ class CommunityPost {
         authorEmail: json['author_email'] as String? ?? '',
         authorPseudonym: json['author_pseudonym'] as String? ?? 'Anonim',
         authorAvatar: json['author_avatar'] as String? ?? '',
+        authorMood: json['author_mood'] as String? ?? 'Butuh Teman 🫂',
         content: json['content'] as String? ?? '',
         categoryTag: json['category_tag'] as String? ?? '#Semua',
         likesCount: json['likes_count'] as int? ?? 0,
@@ -177,4 +181,57 @@ class CommunityPost {
             .toList(),
       );
 }
+
+class AppNotification {
+  final String id;
+  final String title;
+  final String message;
+  final String date;
+  final String senderPseudonym;
+  final String senderAvatar;
+  final String recipientEmail;
+  final String targetPostId;
+  final String type; // 'hug' (like) or 'comment' (support)
+  bool isRead;
+
+  AppNotification({
+    required this.id,
+    required this.title,
+    required this.message,
+    required this.date,
+    required this.senderPseudonym,
+    required this.senderAvatar,
+    required this.recipientEmail,
+    required this.targetPostId,
+    required this.type,
+    this.isRead = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'message': message,
+        'date': date,
+        'sender_pseudonym': senderPseudonym,
+        'sender_avatar': senderAvatar,
+        'recipient_email': recipientEmail,
+        'target_post_id': targetPostId,
+        'type': type,
+        'is_read': isRead,
+      };
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) => AppNotification(
+        id: json['id'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        message: json['message'] as String? ?? '',
+        date: json['date'] as String? ?? '',
+        senderPseudonym: json['sender_pseudonym'] as String? ?? 'Teman MindCare',
+        senderAvatar: json['sender_avatar'] as String? ?? '',
+        recipientEmail: json['recipient_email'] as String? ?? '',
+        targetPostId: json['target_post_id'] as String? ?? '',
+        type: json['type'] as String? ?? 'hug',
+        isRead: json['is_read'] as bool? ?? false,
+      );
+}
+
 

@@ -33,6 +33,22 @@ class AppStateService extends ChangeNotifier {
   List<JournalEntry> get journals => List.unmodifiable(_journals);
   List<ScreeningRecord> get screeningHistory => List.unmodifiable(_screeningHistory);
   int get latestScreeningScore => _screeningHistory.isNotEmpty ? _screeningHistory.first.score : 85;
+  String get calculatedScreeningMood {
+    if (_screeningHistory.isEmpty) {
+      return 'Kondisi Stabil 🔵';
+    }
+    final latest = _screeningHistory.first;
+    final score = latest.score;
+    if (score >= 80) {
+      return 'Sangat Sehat & Bahagia 🟢';
+    } else if (score >= 65) {
+      return 'Kondisi Stabil 🔵';
+    } else if (score >= 45) {
+      return 'Sedang Cemas & Lelah 🟡';
+    } else {
+      return 'Butuh Perhatian & Dukungan 🔴';
+    }
+  }
   int get meditationCount => _meditationCount;
   List<CommunityPost> get realTimeCommunityPosts => AppDatabase.instance.getCommunityPosts();
   Stream<List<CommunityPost>> get realTimeCommunityStream => AppDatabase.instance.communityPostsStream;
@@ -286,8 +302,30 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleLikePost(String postId) {
-    AppDatabase.instance.toggleLikeCommunityPost(postId);
+  // --- [READ] Notifikasi: Mengambil notifikasi pengguna ---
+  List<AppNotification> get notifications {
+    return AppDatabase.instance.getNotifications(_userProfile.email);
+  }
+
+  int get unreadNotificationsCount {
+    return AppDatabase.instance.getUnreadNotificationsCount(_userProfile.email);
+  }
+
+  Future<void> markAllNotificationsAsRead() async {
+    await AppDatabase.instance.markNotificationsAsRead(_userProfile.email);
+    notifyListeners();
+  }
+
+  void toggleLikePost(
+    String postId, {
+    String senderPseudonym = 'Teman MindCare',
+    String senderAvatar = '',
+  }) {
+    AppDatabase.instance.toggleLikeCommunityPost(
+      postId,
+      senderPseudonym: senderPseudonym,
+      senderAvatar: senderAvatar,
+    );
     notifyListeners();
   }
 

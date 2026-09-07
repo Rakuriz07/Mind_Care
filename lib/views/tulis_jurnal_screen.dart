@@ -173,12 +173,12 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
     final moodItem = _moodList[_selectedMoodIndex];
     final selectedMood = moodItem['label'];
     final currentUser = AppStateService.instance.userProfile;
+    final now = DateTime.now();
     final newEntry = JournalEntry(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: now.millisecondsSinceEpoch.toString(),
       userEmail: currentUser.email,
       title: text.length > 30 ? '${text.substring(0, 30)}...' : text,
-      date:
-          'Hari Ini, ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')} WIB',
+      date: _formatJournalDate(now),
       preview: text,
       mood: selectedMood,
       moodColor: moodItem['textColor'] as Color,
@@ -295,6 +295,23 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
     );
   }
 
+  String _formatJournalDate(DateTime now) {
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    final dayName = days[now.weekday - 1];
+    final day = now.day;
+    final monthName = months[now.month - 1];
+    final year = now.year;
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+
+    return '$dayName, $day $monthName $year • $hour:$minute WIB';
+  }
+
   // --- Date Time Badge ---
   Widget _buildDateTimeBadge() {
     return Row(
@@ -306,7 +323,7 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
         ),
         const SizedBox(width: 8),
         Text(
-          'Hari Ini, 20:30 WIB',
+          _formatJournalDate(DateTime.now()),
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             color: AppColors.onSurfaceVariant,

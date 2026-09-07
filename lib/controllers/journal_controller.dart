@@ -42,8 +42,7 @@ class JournalController extends ChangeNotifier {
     required List<String> tags,
   }) async {
     final now = DateTime.now();
-    final dateStr =
-        'Hari ini, ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} WIB';
+    final dateStr = _formatJournalDate(now);
 
     final entry = JournalEntry(
       id: 'jrn_${now.millisecondsSinceEpoch}',
@@ -100,5 +99,22 @@ class JournalController extends ChangeNotifier {
     _searchQuery = '';
     _selectedMoodFilter = 'Semua';
     notifyListeners();
+  }
+
+  String _formatJournalDate(DateTime now) {
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    final dayName = days[now.weekday - 1];
+    final day = now.day;
+    final monthName = months[now.month - 1];
+    final year = now.year;
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+
+    return '$dayName, $day $monthName $year • $hour:$minute WIB';
   }
 }

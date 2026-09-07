@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mindcare/constants/app_colors.dart';
+import 'package:mindcare/constants/profanity_filter.dart';
 import 'package:mindcare/models/app_models.dart';
 import 'package:mindcare/services/app_state_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -24,6 +25,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
     '#PejuangSkripsi',
     '#BurnoutKerja',
     '#MotivasiPagi',
+  ];
+
+  final List<String> _availableMoods = [
+    'Cemas 🟡',
+    'Butuh Teman 🫂',
+    'Tertekan 🔴',
+    'Sedih 🔵',
+    'Membaik 🟢',
+    'Tenang 💙',
   ];
 
   final List<Map<String, String>> _pseudonyms = [
@@ -77,20 +87,22 @@ class _CommunityScreenState extends State<CommunityScreen> {
     }
   }
 
-  void _showSnackbar(String message) {
+  void _showSnackbar(String message, {bool isWarning = false}) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: isWarning ? AppColors.tertiary : AppColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
@@ -128,38 +140,40 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   void _showCreatePostSheet() {
     final currentUser = AppStateService.instance.userProfile;
-    bool useRealIdentity = false;
     Map<String, String> selectedPseudonym = _pseudonyms.first;
-    String selectedTag = '#CurhatKecemasan';
+    String selectedTag = _categories.firstWhere(
+      (c) => c != 'Semua',
+      orElse: () => '#CurhatKecemasan',
+    );
+    bool useRealIdentity = false;
     final TextEditingController contentController = TextEditingController();
+    final autoMood = AppStateService.instance.calculatedScreeningMood;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surfaceCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final activeAuthorName = useRealIdentity
-                ? currentUser.name
-                : selectedPseudonym['name']!;
-            final activeAvatarUrl = useRealIdentity
-                ? currentUser.avatarUrl
-                : selectedPseudonym['avatar']!;
+            final activeAuthorName =
+                useRealIdentity ? currentUser.name : selectedPseudonym['name']!;
+            final activeAvatarUrl =
+                useRealIdentity
+                    ? currentUser.avatarUrl
+                    : selectedPseudonym['avatar']!;
 
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
               child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.85,
+                decoration: const BoxDecoration(
+                  color: AppColors.surfaceCanvas,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
+                padding: const EdgeInsets.all(24.0),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,42 +193,24 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Tulis Cerita Baru ✨',
+                            'Bagikan Cerita Anda',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: AppColors.onSurface,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.secondaryContainer.withValues(
-                                alpha: 0.5,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              useRealIdentity
-                                  ? 'Identitas Asli'
-                                  : '100% Anonim',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.secondary,
-                              ),
-                            ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close_rounded),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      const Divider(height: 20),
 
-                      // Identity Selection Segment
+                      // Identity Option Bar
                       Text(
-                        'Pilih Mode Identitas Pengirim:',
+                        'Pilih Identitas Pengirim:',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -227,9 +223,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           Expanded(
                             child: ChoiceChip(
                               selected: !useRealIdentity,
-                              label: Center(
-                                child: Text('🎭 Nama Samaran (Anonim)'),
-                              ),
+                              label: const Center(child: Text('🔒 Anonim')),
                               selectedColor: AppColors.primaryContainer,
                               labelStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
@@ -322,6 +316,58 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         const SizedBox(height: 14),
                       ],
 
+                      // Auto Mood Badge Display Card (Derived from screening)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryContainer.withValues(
+                            alpha: 0.35,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppColors.secondary.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.health_and_safety_rounded,
+                              color: AppColors.secondary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Mood Otomatis (Skrining Terakhir):',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10.5,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    autoMood,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
                       // Category Selector
                       Text(
                         'Pilih Topik Diskusi:',
@@ -398,20 +444,26 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         height: 48,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            final content = contentController.text.trim();
-                            if (content.isEmpty) {
+                            final rawContent = contentController.text.trim();
+                            if (rawContent.isEmpty) {
                               _showSnackbar(
                                 'Silakan tulis cerita Anda sebelum mengirim.',
                               );
                               return;
                             }
 
+                            final hasProfanity = ProfanityFilter.containsProfanity(rawContent);
+                            final finalContent = hasProfanity
+                                ? ProfanityFilter.censorText(rawContent)
+                                : rawContent;
+
                             final newPost = CommunityPost(
                               id: 'post_${DateTime.now().millisecondsSinceEpoch}',
                               authorEmail: currentUser.email,
                               authorPseudonym: activeAuthorName,
                               authorAvatar: activeAvatarUrl,
-                              content: content,
+                              authorMood: autoMood,
+                              content: finalContent,
                               categoryTag: selectedTag,
                               likesCount: 0,
                               commentsCount: 0,
@@ -421,9 +473,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
                             AppStateService.instance.addCommunityPost(newPost);
                             Navigator.pop(context);
-                            _showSnackbar(
-                              'Cerita Anda berhasil dibagikan ke komunitas ✨',
-                            );
+
+                            if (hasProfanity) {
+                              _showSnackbar(
+                                'Cerita Anda berhasil dibagikan! (Kata kurang sopan disensor otomatis 🌸)',
+                                isWarning: true,
+                              );
+                            } else {
+                              _showSnackbar(
+                                'Cerita Anda berhasil dibagikan ke komunitas ✨',
+                              );
+                            }
                           },
                           icon: const Icon(Icons.send_rounded, size: 18),
                           label: Text(
@@ -799,7 +859,42 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             },
                           ),
                         ),
-                      const SizedBox(height: 14),
+                      // Empathetic Reminder Banner based on post.authorMood
+                      if (post.authorMood.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryContainer.withValues(
+                              alpha: 0.35,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.favorite_outline_rounded,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Penulis sedang merasa ${post.authorMood}. Berikan kata penguatan yang hangat & santun 💙',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.onPrimaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
 
                       // Comment Identity Option bar
                       Row(
@@ -869,15 +964,20 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           const SizedBox(width: 8),
                           IconButton(
                             onPressed: () {
-                              final text = commentController.text.trim();
-                              if (text.isEmpty) return;
+                              final rawText = commentController.text.trim();
+                              if (rawText.isEmpty) return;
+
+                              final hasProfanity = ProfanityFilter.containsProfanity(rawText);
+                              final finalText = hasProfanity
+                                  ? ProfanityFilter.censorText(rawText)
+                                  : rawText;
 
                               final newComment = CommunityComment(
                                 id: 'comm_${DateTime.now().millisecondsSinceEpoch}',
                                 authorEmail: currentUser.email,
                                 authorPseudonym: activeAuthorName,
                                 authorAvatar: activeAvatarUrl,
-                                content: text,
+                                content: finalText,
                                 date: 'Baru saja',
                               );
 
@@ -887,9 +987,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               );
                               commentController.clear();
                               setSheetState(() {});
-                              _showSnackbar(
-                                'Komentar dukungan Anda berhasil dikirim! ❤️',
-                              );
+
+                              if (hasProfanity) {
+                                _showSnackbar(
+                                  'Komentar dikirim! (Kata kurang sopan disensor otomatis 🌸)',
+                                  isWarning: true,
+                                );
+                              } else {
+                                _showSnackbar(
+                                  'Komentar dukungan Anda berhasil dikirim! ❤️',
+                                );
+                              }
                             },
                             icon: const Icon(
                               Icons.send_rounded,
@@ -1038,51 +1146,86 @@ class _CommunityScreenState extends State<CommunityScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondaryContainer.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.forum_rounded,
-                    color: AppColors.secondary,
-                    size: 22,
+                Text(
+                  'Komunitas MindCare',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Komunitas MindCare',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      Text(
-                        'Ruang Aman Dukungan Sebaya',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                Text(
+                  'Ruang Aman Dukungan Sebaya',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: AppColors.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
+          // Notification Bell Button with Badge Counter
+          ListenableBuilder(
+            listenable: AppStateService.instance,
+            builder: (context, _) {
+              final unreadCount = AppStateService.instance.unreadNotificationsCount;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    onPressed: _showNotificationsSheet,
+                    tooltip: 'Notifikasi',
+                    icon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer.withValues(alpha: 0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.notifications_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          '$unreadCount',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 4),
           IconButton(
             onPressed: _callEmergencyHotline,
             tooltip: 'Call Center 119',
@@ -1101,6 +1244,145 @@ class _CommunityScreenState extends State<CommunityScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showNotificationsSheet() {
+    AppStateService.instance.markAllNotificationsAsRead();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return ListenableBuilder(
+          listenable: AppStateService.instance,
+          builder: (context, _) {
+            final notifs = AppStateService.instance.notifications;
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceCanvas,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.notifications_active_rounded, color: AppColors.primary, size: 22),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Notifikasi (${notifs.length})',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24),
+                  if (notifs.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.notifications_none_rounded, size: 56, color: AppColors.outline),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Belum ada notifikasi baru',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: notifs.length,
+                        separatorBuilder: (context, index) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final item = notifs[index];
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: item.type == 'hug'
+                                    ? AppColors.errorContainer.withValues(alpha: 0.3)
+                                    : AppColors.primaryContainer.withValues(alpha: 0.3),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                item.type == 'hug' ? Icons.favorite_rounded : Icons.chat_bubble_rounded,
+                                color: item.type == 'hug' ? AppColors.error : AppColors.primary,
+                                size: 20,
+                              ),
+                            ),
+                            title: Text(
+                              item.title,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 2),
+                                Text(
+                                  item.message,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.date,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    color: AppColors.outline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1346,6 +1628,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   Widget _buildPostCard(CommunityPost post) {
     final currentUser = AppStateService.instance.userProfile;
+    final senderName = currentUser.name.isNotEmpty ? currentUser.name : 'Teman MindCare';
+    final senderAvatar = currentUser.avatarUrl;
     final isMyPost =
         post.authorEmail.isNotEmpty && post.authorEmail == currentUser.email;
 
@@ -1384,21 +1668,40 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            post.authorPseudonym,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.onSurface,
-                            ),
+                        Text(
+                          post.authorPseudonym,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.onSurface,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        if (post.authorMood.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondaryContainer.withValues(
+                                alpha: 0.6,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Mood: ${post.authorMood}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.secondary,
+                              ),
+                            ),
+                          ),
                         if (isMyPost)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -1556,7 +1859,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
               Flexible(
                 child: InkWell(
                   onTap: () {
-                    AppStateService.instance.toggleLikePost(post.id);
+                    AppStateService.instance.toggleLikePost(
+                      post.id,
+                      senderPseudonym: senderName,
+                      senderAvatar: senderAvatar,
+                    );
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(

@@ -83,88 +83,116 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _getTimeBasedGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 11) {
+      return 'Selamat Pagi,';
+    } else if (hour >= 11 && hour < 15) {
+      return 'Selamat Siang,';
+    } else if (hour >= 15 && hour < 18) {
+      return 'Selamat Sore,';
+    } else {
+      return 'Selamat Malam,';
+    }
+  }
+
+  String _formatGreetingName(String fullName) {
+    final cleanName = fullName.trim();
+    if (cleanName.isEmpty) return 'Pengguna';
+    if (cleanName.length > 16) {
+      return '${cleanName.substring(0, 16)}...';
+    }
+    return cleanName;
+  }
+
   // --- Header Widget ---
   Widget _buildHeader() {
     final profile = AppStateService.instance.userProfile;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            // Profile Avatar
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
+        Expanded(
+          child: Row(
+            children: [
+              // Profile Avatar
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primaryFixed, width: 2.5),
                   ),
-                );
-              },
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primaryFixed, width: 2.5),
-                ),
-                child: ClipOval(
-                  child: profile.avatarBytes != null
-                      ? Image.memory(profile.avatarBytes!, fit: BoxFit.cover)
-                      : profile.avatarFile != null
-                      ? Image.file(profile.avatarFile!, fit: BoxFit.cover)
-                      : profile.avatarUrl.startsWith('assets/')
-                      ? Image.asset(
-                          profile.avatarUrl,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                color: AppColors.primaryFixed,
-                                child: const Icon(
-                                  Icons.person,
-                                  color: AppColors.primary,
+                  child: ClipOval(
+                    child: profile.avatarBytes != null
+                        ? Image.memory(profile.avatarBytes!, fit: BoxFit.cover)
+                        : profile.avatarFile != null
+                        ? Image.file(profile.avatarFile!, fit: BoxFit.cover)
+                        : profile.avatarUrl.startsWith('assets/')
+                        ? Image.asset(
+                            profile.avatarUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: AppColors.primaryFixed,
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
-                              ),
-                        )
-                      : Image.network(
-                          profile.avatarUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                color: AppColors.primaryFixed,
-                                child: const Icon(
-                                  Icons.person,
-                                  color: AppColors.primary,
+                          )
+                        : Image.network(
+                            profile.avatarUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: AppColors.primaryFixed,
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
-                              ),
-                        ),
+                          ),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            // Greeting & Name
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Selamat Pagi,',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.onSurfaceVariant,
-                  ),
+              const SizedBox(width: 12),
+              // Greeting & Name (Max 16 Chars)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getTimeBasedGreeting(),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      '${_formatGreetingName(profile.name)} ✨',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${profile.name.split(' ').first}✨',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
         // Action Icon Button (Personal Icon at Top Right)
         InkWell(

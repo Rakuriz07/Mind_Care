@@ -520,6 +520,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  String _resolveMoodAsset(String path, int score) {
+    if (path.contains('assets/images/')) return path;
+    if (score >= 75) return 'assets/images/senang.png';
+    if (score >= 55) return 'assets/images/cemas.png';
+    if (score >= 35) return 'assets/images/sedih.png';
+    return 'assets/images/STRESS.jpg';
+  }
+
+  Widget _buildCardImage(String path, int score) {
+    final assetPath = _resolveMoodAsset(path, score);
+    return Image.asset(
+      assetPath,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => const Icon(
+        Icons.sentiment_satisfied_rounded,
+        color: AppColors.primary,
+      ),
+    );
+  }
+
   // --- History Card ---
   Widget _buildHistoryCard(ScreeningRecord item, int index) {
     return Container(
@@ -552,14 +572,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       color: item.bg.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: Image.network(
-                      item.image,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.sentiment_satisfied_rounded,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    child: _buildCardImage(item.image, item.score),
                   ),
                   const SizedBox(width: 12),
                   Column(

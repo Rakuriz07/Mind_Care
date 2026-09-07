@@ -760,6 +760,178 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showLanguageInfoModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Bahasa Aplikasi 🌐',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'MindCare saat ini mengoptimalkan Bahasa Indonesia untuk memberikan pengalaman dan dukungan emosional yang ramah.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Option 1: Bahasa Indonesia (Active)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.secondary,
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Text('🇮🇩', style: TextStyle(fontSize: 22)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bahasa Indonesia',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSurface,
+                            ),
+                          ),
+                          Text(
+                            'Bahasa Utama (Aktif)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.secondary,
+                      size: 22,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Option 2: English (Coming Soon)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCanvas,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Text('🇬🇧', style: TextStyle(fontSize: 22)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'English (US)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.outline,
+                            ),
+                          ),
+                          Text(
+                            'Segera Hadir di Versi 2.0',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppColors.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.outlineVariant.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Soon',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.outline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Tutup'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showHelpModal() {
     showModalBottomSheet(
       context: context,
@@ -815,6 +987,141 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showAboutMindCareModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // App Logo / Icon Container
+              Container(
+                width: 72,
+                height: 72,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer.withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.spa_rounded,
+                    color: AppColors.primary,
+                    size: 40,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'MindCare',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+              Text(
+                'Versi 2.4.0 • Ruang Aman Kesehatan Mental',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceCanvas,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'MindCare adalah aplikasi pendamping kesehatan mental yang dirancang untuk membantu Anda memantau suasana hati, menulis jurnal harian, serta berbagi cerita dalam komunitas anonim yang aman dan hangat.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        height: 1.5,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildAboutFeatureItem(Icons.verified_user_rounded, '100% Privasi'),
+                        _buildAboutFeatureItem(Icons.favorite_rounded, 'Dukungan Sebaya'),
+                        _buildAboutFeatureItem(Icons.fingerprint_rounded, 'Kunci Biometrik'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Tutup'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAboutFeatureItem(IconData icon, String label) {
+    return Column(
+      children: [
+        Icon(icon, color: AppColors.secondary, size: 20),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10.5,
+            fontWeight: FontWeight.bold,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 
@@ -2099,11 +2406,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: AppColors.surfaceVariant,
           ),
           _buildSettingsTile(
+            icon: Icons.language_rounded,
+            iconColor: AppColors.secondary,
+            title: 'Bahasa Aplikasi',
+            subtitle: 'Bahasa Indonesia (Utama)',
+            onTap: _showLanguageInfoModal,
+          ),
+          const Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: AppColors.surfaceVariant,
+          ),
+          _buildSettingsTile(
             icon: Icons.help_outline_rounded,
             iconColor: AppColors.outline,
             title: 'Bantuan & Dukungan',
             subtitle: 'Pusat bantuan & layanan darurat',
             onTap: _showHelpModal,
+          ),
+          const Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: AppColors.surfaceVariant,
+          ),
+          _buildSettingsTile(
+            icon: Icons.info_outline_rounded,
+            iconColor: AppColors.primary,
+            title: 'Tentang MindCare',
+            subtitle: 'Versi aplikasi, visi & misi ruang aman',
+            onTap: _showAboutMindCareModal,
           ),
         ],
       ),

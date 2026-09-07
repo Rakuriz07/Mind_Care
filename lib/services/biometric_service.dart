@@ -48,7 +48,8 @@ class BiometricService {
         localizedReason: localizedReason,
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: false, // Fallback to PIN / Pattern / Password if biometrics fail
+          biometricOnly:
+              false, // Fallback to PIN / Pattern / Password if biometrics fail
           useErrorDialogs: true,
         ),
       );
@@ -56,7 +57,7 @@ class BiometricService {
       if (didAuthenticate) {
         return {
           'success': true,
-          'message': 'Otentikasi biometrik berhasil! Akses diberikan. 🔒',
+          'message': 'Otentikasi biometrik berhasil! Akses diberikan.',
         };
       } else {
         return {
@@ -67,7 +68,8 @@ class BiometricService {
     } on PlatformException catch (e) {
       return {
         'success': false,
-        'message': 'Gagal melakukan verifikasi biometrik: ${e.message ?? e.code}',
+        'message':
+            'Gagal melakukan verifikasi biometrik: ${e.message ?? e.code}',
       };
     } catch (e) {
       return {

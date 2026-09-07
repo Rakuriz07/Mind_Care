@@ -36,6 +36,7 @@ class AppDatabase {
   Map<String, dynamic> _activeSession = {};
 
   List<CommunityPost> _communityPostsTable = [];
+  List<AppNotification> _notificationsTable = [];
 
   List<Map<String, dynamic>> _journalsTable = [];
   List<Map<String, dynamic>> _screeningsTable = [];
@@ -82,6 +83,11 @@ class AppDatabase {
           final rawPosts = dbData['community_posts'] as List? ?? [];
           _communityPostsTable = rawPosts
               .map((item) => CommunityPost.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+
+          final rawNotifs = dbData['notifications'] as List? ?? [];
+          _notificationsTable = rawNotifs
+              .map((item) => AppNotification.fromJson(Map<String, dynamic>.from(item)))
               .toList();
 
           // Merge seeds safely without overwriting registered accounts
@@ -166,6 +172,7 @@ class AppDatabase {
           'screenings': _screeningsTable,
           'preferences': _preferencesTable,
           'community_posts': _communityPostsTable.map((p) => p.toJson()).toList(),
+          'notifications': _notificationsTable.map((n) => n.toJson()).toList(),
           'updated_at': DateTime.now().toIso8601String(),
         };
         await _dbFile!.writeAsString(jsonEncode(data));
@@ -436,16 +443,31 @@ class AppDatabase {
     }).toList();
 
     return userScreenings.map((map) {
+      final rawImage = (map['image'] as String? ?? '').trim();
+      final score = map['score'] as int? ?? 85;
+      String resolvedImage = rawImage;
+      if (!resolvedImage.contains('assets/images/')) {
+        if (score >= 75) {
+          resolvedImage = 'assets/images/senang.png';
+        } else if (score >= 55) {
+          resolvedImage = 'assets/images/cemas.png';
+        } else if (score >= 35) {
+          resolvedImage = 'assets/images/sedih.png';
+        } else {
+          resolvedImage = 'assets/images/STRESS.jpg';
+        }
+      }
+
       return ScreeningRecord(
         id: (map['id'] ?? '').toString(),
         userEmail: map['user_email'] as String? ?? targetEmail,
         userName: map['user_name'] as String? ?? (_activeSession['name'] ?? ''),
         title: map['title'] as String,
         date: map['date'] as String,
-        score: map['score'] as int,
+        score: score,
         color: Color(map['color'] as int? ?? AppColors.secondary.toARGB32()),
         bg: Color(map['bg'] as int? ?? AppColors.secondaryContainer.toARGB32()),
-        image: map['image'] as String,
+        image: resolvedImage,
       );
     }).toList();
   }
@@ -534,12 +556,32 @@ class AppDatabase {
     await _flush();
   }
 
-  Future<void> toggleLikeCommunityPost(String postId) async {
+  Future<void> toggleLikeCommunityPost(
+    String postId, {
+    String senderPseudonym = 'Teman MindCare',
+    String senderAvatar = '',
+  }) async {
     for (var post in _communityPostsTable) {
       if (post.id == postId) {
         post.isLiked = !post.isLiked;
         if (post.isLiked) {
           post.likesCount += 1;
+          final snippet = post.content.length > 35
+              ? '${post.content.substring(0, 35)}...'
+              : post.content;
+          final notif = AppNotification(
+            id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+            title: 'Pelukan Hangat 🫂',
+            message:
+                '$senderPseudonym memberikan pelukan hangat pada postingan Anda: "$snippet"',
+            date: 'Baru saja',
+            senderPseudonym: senderPseudonym,
+            senderAvatar: senderAvatar,
+            recipientEmail: post.authorEmail,
+            targetPostId: post.id,
+            type: 'hug',
+          );
+          _notificationsTable.insert(0, notif);
         } else {
           post.likesCount = (post.likesCount - 1).clamp(0, 99999);
         }
@@ -555,10 +597,51 @@ class AppDatabase {
       if (post.id == postId) {
         post.comments.insert(0, comment);
         post.commentsCount += 1;
+
+        final snippet = comment.content.length > 35
+            ? '${comment.content.substring(0, 35)}...'
+            : comment.content;
+        final notif = AppNotification(
+          id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+          title: 'Dukungan Baru 💬',
+          message: '${comment.authorPseudonym} memberikan dukungan: "$snippet"',
+          date: 'Baru saja',
+          senderPseudonym: comment.authorPseudonym,
+          senderAvatar: comment.authorAvatar,
+          recipientEmail: post.authorEmail,
+          targetPostId: post.id,
+          type: 'comment',
+        );
+        _notificationsTable.insert(0, notif);
         break;
       }
     }
     _notifyCommunityChanged();
+    await _flush();
+  }
+
+  // --- [READ] Notifikasi: Membaca daftar notifikasi ---
+  List<AppNotification> getNotifications(String userEmail) {
+    final cleanEmail = userEmail.toLowerCase().trim();
+    if (cleanEmail.isEmpty) return List.unmodifiable(_notificationsTable);
+    return List.unmodifiable(
+      _notificationsTable.where((n) =>
+        n.recipientEmail.isEmpty || n.recipientEmail.toLowerCase().trim() == cleanEmail
+      ).toList()
+    );
+  }
+
+  int getUnreadNotificationsCount(String userEmail) {
+    return getNotifications(userEmail).where((n) => !n.isRead).length;
+  }
+
+  Future<void> markNotificationsAsRead(String userEmail) async {
+    final cleanEmail = userEmail.toLowerCase().trim();
+    for (var n in _notificationsTable) {
+      if (cleanEmail.isEmpty || n.recipientEmail.toLowerCase().trim() == cleanEmail) {
+        n.isRead = true;
+      }
+    }
     await _flush();
   }
 

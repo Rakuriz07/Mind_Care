@@ -65,7 +65,7 @@ class HasilSkriningScreen extends StatelessWidget {
           ),
         },
       ];
-    } else if (score >= 50) {
+    } else if (score >= 55) {
       // Condition: Mild Stress / Cemas
       resultCategory = 'Kecemasan Ringan';
       headline = 'Hasil Skrining Kamu: Perlu Relaksasi';
@@ -102,26 +102,61 @@ class HasilSkriningScreen extends StatelessWidget {
           ),
         },
       ];
-    } else {
-      // Condition: High Stress / Sedih
-      resultCategory = 'Tingkat Stres Tinggi';
-      headline = 'Hasil Skrining Kamu: Perlu Perhatian';
+    } else if (score >= 35) {
+      // Condition: Sadness / Sedih
+      resultCategory = 'Sedang Lelah & Sedih';
+      headline = 'Hasil Skrining Kamu: Sedang Lelah';
       description =
-          'Kondisi mentalmu menunjukkan tingkat stres atau keletihan emosional yang tinggi. Disarankan untuk beristirahat dan mempertimbangkan konsultasi dengan profesional.';
+          'Kamu sedang berada di fase di mana suasana hati merasa sedih dan emosi cukup lelah. Jangan ragu beristirahat dan cerita ke teman terdekat.';
       moodImageUrl = 'assets/images/sedih.png';
       scoreColor = AppColors.primary;
       pulseGlowColor = AppColors.softPink;
       recommendations = [
         {
-          'icon': Icons.psychology_outlined,
-          'title': 'Konsultasi Psikolog',
-          'desc': 'Dapatkan pendampingan dari psikolog berlisensi.',
+          'icon': Icons.edit_note_rounded,
+          'title': 'Tuliskan Perasaan',
+          'desc': 'Luapkan emosi dan pikiran ke jurnal harian.',
           'bg': AppColors.softPink,
           'iconColor': AppColors.primary,
+          'onTap': () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const DaftarJurnalScreen()),
+          ),
+        },
+        {
+          'icon': Icons.sports_esports_rounded,
+          'title': 'Game Relaksasi',
+          'desc': 'Meletuskan cemas & menyelaraskan napas.',
+          'bg': AppColors.softMint,
+          'iconColor': AppColors.secondary,
+          'onTap': () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const GameRelaksasiScreen(),
+            ),
+          ),
+        },
+      ];
+    } else {
+      // Condition: Severe Stress / STRESS
+      resultCategory = 'Tingkat Stres Tinggi';
+      headline = 'Hasil Skrining Kamu: Perlu Perhatian Khusus';
+      description =
+          'Kondisi mentalmu menunjukkan tingkat stres yang cukup tinggi. Disarankan untuk beristirahat dan mempertimbangkan konsultasi dengan profesional.';
+      moodImageUrl = 'assets/images/STRESS.jpg';
+      scoreColor = AppColors.error;
+      pulseGlowColor = AppColors.softPink;
+      recommendations = [
+        {
+          'icon': Icons.psychology_outlined,
+          'title': 'Konsultasi Profesional',
+          'desc': 'Dapatkan pendampingan dari konselor atau psikolog.',
+          'bg': AppColors.softPink,
+          'iconColor': AppColors.error,
           'onTap': () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Membuka daftar psikolog MindCare...'),
+                content: Text('Membuka layanan konseling MindCare...'),
               ),
             );
           },
@@ -239,6 +274,29 @@ class HasilSkriningScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildResultImage(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(
+        path,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.sentiment_satisfied_alt_rounded,
+          size: 80,
+          color: AppColors.primary,
+        ),
+      );
+    }
+    return Image.asset(
+      path,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => const Icon(
+        Icons.sentiment_satisfied_alt_rounded,
+        size: 80,
+        color: AppColors.primary,
+      ),
+    );
+  }
+
   // --- Result Hero Section ---
   Widget _buildResultHero(
     String imageUrl,
@@ -270,15 +328,7 @@ class HasilSkriningScreen extends StatelessWidget {
             SizedBox(
               width: 140,
               height: 140,
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.sentiment_satisfied_alt_rounded,
-                  size: 80,
-                  color: AppColors.primary,
-                ),
-              ),
+              child: _buildResultImage(imageUrl),
             ),
           ],
         ),
