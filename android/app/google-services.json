@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "250964083045",
+    "project_id": "mindcare-project-cf850",
+    "storage_bucket": "mindcare-project-cf850.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:250964083045:android:927fb928c5e07a6638618c",
+        "android_client_info": {
+          "package_name": "com.Rakuriz.mindcare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDQ-Fj_BTTGL-4fxG8aYjWZDgbvv2DHpU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
