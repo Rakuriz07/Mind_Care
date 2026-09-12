@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:printing/printing.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/models/app_models.dart';
 import 'package:mindcare/services/app_state_service.dart';
+import 'package:mindcare/services/pdf_report_service.dart';
 import 'package:mindcare/views/detail_hasil_screening_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -14,6 +16,54 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   String _selectedFilter = 'Semua Riwayat';
+  bool _isGeneratingPdf = false;
+
+  Future<void> _exportPdfReport() async {
+    final user = AppStateService.instance.userProfile;
+    final screeningHistory = AppStateService.instance.screeningHistory;
+
+    if (screeningHistory.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Belum ada data riwayat skrining untuk dicetak. Lakukan skrining terlebih dahulu.',
+          ),
+          backgroundColor: AppColors.tertiary,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isGeneratingPdf = true);
+
+    try {
+      final pdfBytes = await PdfReportService.generateScreeningReport(
+        user: user,
+        records: screeningHistory,
+      );
+
+      final cleanName = user.name.replaceAll(RegExp(r'[^\w\s]+'), '').replaceAll(' ', '_');
+      final pdfName = 'MindCare_Laporan_${cleanName.isEmpty ? "User" : cleanName}.pdf';
+
+      await Printing.layoutPdf(
+        onLayout: (format) async => pdfBytes,
+        name: pdfName,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuat dokumen PDF: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingPdf = false);
+      }
+    }
+  }
 
   void _deleteHistory(ScreeningRecord record) {
     showDialog(
@@ -47,18 +97,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await AppStateService.instance.deleteScreeningRecordById(record.id);
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Riwayat skrining dan grafik berhasil diperbarui.',
-                      ),
+                final nav = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                await AppStateService.instance.deleteScreeningRecordById(
+                  record.id,
+                );
+                nav.pop();
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Riwayat skrining dan grafik berhasil diperbarui.',
                     ),
-                  );
-                }
+                  ),
+                );
               },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: Colors.white,
@@ -164,34 +217,51 @@ class _HistoryScreenState extends State<HistoryScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Riwayat Hasil Screening',
+            'Riwayat Skrining',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
             ),
           ),
-          IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Semua hasil skrining tersimpan aman sesuai akun Anda.',
+          ElevatedButton.icon(
+            onPressed: _isGeneratingPdf ? null : _exportPdfReport,
+            icon: _isGeneratingPdf
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(
+                    Icons.picture_as_pdf_rounded,
+                    size: 16,
+                    color: Colors.white,
                   ),
-                  backgroundColor: AppColors.secondary,
-                ),
-              );
-            },
-            icon: const Icon(
-              Icons.shield_outlined,
-              color: AppColors.primary,
-              size: 22,
+            label: Text(
+              _isGeneratingPdf ? 'Memproses...' : 'Cetak PDF',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
 
   // --- Header Text ---
   Widget _buildHeaderText(UserProfile user) {
@@ -525,7 +595,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (score >= 75) return 'assets/images/senang.png';
     if (score >= 55) return 'assets/images/cemas.png';
     if (score >= 35) return 'assets/images/sedih.png';
-    return 'assets/images/STRESS.jpg';
+    return 'assets/images/STRESS.png';
   }
 
   Widget _buildCardImage(String path, int score) {
@@ -562,52 +632,63 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: item.bg.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: _buildCardImage(item.image, item.score),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.title,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onSurface,
-                        ),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: item.bg.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 2),
-                      Row(
+                      child: _buildCardImage(item.image, item.score),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.calendar_today_rounded,
-                            size: 12,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
                           Text(
-                            item.date,
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: AppColors.onSurfaceVariant,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSurface,
                             ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                size: 12,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  item.date,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

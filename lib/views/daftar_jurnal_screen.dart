@@ -162,9 +162,24 @@ class _DaftarJurnalScreenState extends State<DaftarJurnalScreen> {
     );
   }
 
+  String _getMoodEmoji(String mood) {
+    switch (mood) {
+      case 'Sangat Sedih':
+        return '😭';
+      case 'Sedih':
+        return '🙁';
+      case 'Biasa Saja':
+        return '😐';
+      case 'Senang':
+        return '😊';
+      default:
+        return '😊';
+    }
+  }
+
   // --- Search & Filter Bar ---
   Widget _buildSearchAndFilters() {
-    final filters = ['Semua', 'Senang', 'Tenang', 'Biasa Saja', 'Cemas', 'Sangat Senang'];
+    final filters = ['Semua', 'Sangat Sedih', 'Sedih', 'Biasa Saja', 'Senang'];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
@@ -266,24 +281,31 @@ class _DaftarJurnalScreenState extends State<DaftarJurnalScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_today_rounded,
-                    size: 14,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    journal.date,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 14,
                       color: AppColors.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        journal.date,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: AppColors.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -291,7 +313,7 @@ class _DaftarJurnalScreenState extends State<DaftarJurnalScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '😊 ${journal.mood}',
+                  '${_getMoodEmoji(journal.mood)} ${journal.mood}',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

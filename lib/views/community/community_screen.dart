@@ -15,26 +15,7 @@ class CommunityScreen extends StatefulWidget {
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
-  String _selectedCategory = 'Semua';
   final TextEditingController _searchController = TextEditingController();
-
-  final List<String> _categories = [
-    'Semua',
-    '#CurhatKecemasan',
-    '#SelfCare',
-    '#PejuangSkripsi',
-    '#BurnoutKerja',
-    '#MotivasiPagi',
-  ];
-
-  final List<String> _availableMoods = [
-    'Cemas 🟡',
-    'Butuh Teman 🫂',
-    'Tertekan 🔴',
-    'Sedih 🔵',
-    'Membaik 🟢',
-    'Tenang 💙',
-  ];
 
   final List<Map<String, String>> _pseudonyms = [
     {
@@ -125,7 +106,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
       return CircleAvatar(
         radius: radius,
         backgroundImage: NetworkImage(avatarUrl),
-        onBackgroundImageError: (_, __) {},
+        onBackgroundImageError: (exception, stackTrace) {},
+
         child: avatarUrl.isEmpty
             ? Icon(Icons.person_rounded, size: radius, color: AppColors.primary)
             : null,
@@ -141,10 +123,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
   void _showCreatePostSheet() {
     final currentUser = AppStateService.instance.userProfile;
     Map<String, String> selectedPseudonym = _pseudonyms.first;
-    String selectedTag = _categories.firstWhere(
-      (c) => c != 'Semua',
-      orElse: () => '#CurhatKecemasan',
-    );
     bool useRealIdentity = false;
     final TextEditingController contentController = TextEditingController();
     final autoMood = AppStateService.instance.calculatedScreeningMood;
@@ -235,8 +213,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     : AppColors.onSurfaceVariant,
                               ),
                               onSelected: (val) {
-                                if (val)
+                                if (val) {
                                   setSheetState(() => useRealIdentity = false);
+                                }
                               },
                             ),
                           ),
@@ -258,8 +237,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     : AppColors.onSurfaceVariant,
                               ),
                               onSelected: (val) {
-                                if (val)
+                                if (val) {
                                   setSheetState(() => useRealIdentity = true);
+                                }
                               },
                             ),
                           ),
@@ -303,14 +283,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         : AppColors.onSurface,
                                   ),
                                   onSelected: (val) {
-                                    if (val)
+                                    if (val) {
                                       setSheetState(
                                         () => selectedPseudonym = p,
                                       );
+                                    }
                                   },
                                 ),
                               );
                             }).toList(),
+
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -365,44 +347,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Category Selector
-                      Text(
-                        'Pilih Topik Diskusi:',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: _categories.where((c) => c != 'Semua').map((
-                          tag,
-                        ) {
-                          final isSelected = selectedTag == tag;
-                          return ChoiceChip(
-                            label: Text(tag),
-                            selected: isSelected,
-                            selectedColor: AppColors.secondaryContainer,
-                            labelStyle: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: isSelected
-                                  ? AppColors.secondary
-                                  : AppColors.onSurfaceVariant,
-                            ),
-                            onSelected: (val) {
-                              if (val) setSheetState(() => selectedTag = tag);
-                            },
-                          );
-                        }).toList(),
                       ),
                       const SizedBox(height: 14),
 
@@ -464,7 +408,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               authorAvatar: activeAvatarUrl,
                               authorMood: autoMood,
                               content: finalContent,
-                              categoryTag: selectedTag,
+                              categoryTag: '',
                               likesCount: 0,
                               commentsCount: 0,
                               date: 'Baru saja',
@@ -1027,15 +971,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
         final query = _searchController.text.toLowerCase().trim();
 
         final filteredPosts = allPosts.where((post) {
-          final matchesCategory =
-              _selectedCategory == 'Semua' ||
-              post.categoryTag == _selectedCategory;
           final matchesQuery =
               query.isEmpty ||
               post.content.toLowerCase().contains(query) ||
-              post.authorPseudonym.toLowerCase().contains(query) ||
-              post.categoryTag.toLowerCase().contains(query);
-          return matchesCategory && matchesQuery;
+              post.authorPseudonym.toLowerCase().contains(query);
+          return matchesQuery;
         }).toList();
 
         return Scaffold(
@@ -1060,11 +1000,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         _buildCrisisBanner(),
                         const SizedBox(height: 16),
 
-                        // Support Groups Bento Carousel
-                        _buildSupportGroupsBento(),
-                        const SizedBox(height: 18),
-
-                        // Search & Topic Filter Chips
+                        // Search Bar
                         _buildSearchAndFilters(),
                         const SizedBox(height: 18),
 
@@ -1448,181 +1384,43 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget _buildSupportGroupsBento() {
-    final groups = [
-      {
-        'title': 'Ruang Ketenangan',
-        'subtitle': 'Bebas Overthinking & Cemas',
-        'tag': '#CurhatKecemasan',
-        'color': AppColors.secondary,
-        'bgColor': AppColors.secondaryContainer.withValues(alpha: 0.4),
-      },
-      {
-        'title': 'Pejuang Skripsi',
-        'subtitle': 'Stres Akademik & Mandiri',
-        'tag': '#PejuangSkripsi',
-        'color': AppColors.primary,
-        'bgColor': AppColors.primaryContainer.withValues(alpha: 0.4),
-      },
-      {
-        'title': 'Manajemen Burnout',
-        'subtitle': 'Keseimbangan Kerjaan',
-        'tag': '#BurnoutKerja',
-        'color': AppColors.tertiary,
-        'bgColor': AppColors.softSunshine.withValues(alpha: 0.5),
-      },
-    ];
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: groups.map((g) {
-          final tag = g['tag'] as String;
-          final isSelected = _selectedCategory == tag;
-
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedCategory = isSelected ? 'Semua' : tag;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 180,
-              margin: const EdgeInsets.only(right: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? (g['bgColor'] as Color)
-                    : AppColors.surfaceCard,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isSelected
-                      ? (g['color'] as Color)
-                      : (g['color'] as Color).withValues(alpha: 0.3),
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: g['bgColor'] as Color,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.groups_rounded,
-                          color: g['color'] as Color,
-                          size: 18,
-                        ),
-                      ),
-                      if (isSelected)
-                        Icon(
-                          Icons.check_circle_rounded,
-                          color: g['color'] as Color,
-                          size: 16,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    g['title'] as String,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    g['subtitle'] as String,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
 
   Widget _buildSearchAndFilters() {
-    return Column(
-      children: [
-        TextField(
-          controller: _searchController,
-          onChanged: (_) => setState(() {}),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13),
-          decoration: InputDecoration(
-            hintText: 'Cari kata kunci cerita, topik, atau nama samaran...',
-            hintStyle: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: AppColors.outline,
-            ),
-            prefixIcon: const Icon(
-              Icons.search,
-              size: 20,
-              color: AppColors.outline,
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceCard,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 10,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.outlineVariant.withValues(alpha: 0.3),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.outlineVariant.withValues(alpha: 0.3),
-              ),
-            ),
+    return TextField(
+      controller: _searchController,
+      onChanged: (_) => setState(() {}),
+      style: GoogleFonts.plusJakartaSans(fontSize: 13),
+      decoration: InputDecoration(
+        hintText: 'Cari kata kunci cerita atau nama samaran...',
+        hintStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          color: AppColors.outline,
+        ),
+        prefixIcon: const Icon(
+          Icons.search,
+          size: 20,
+          color: AppColors.outline,
+        ),
+        filled: true,
+        fillColor: AppColors.surfaceCard,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 10,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: AppColors.outlineVariant.withValues(alpha: 0.3),
           ),
         ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: _categories.map((cat) {
-              final isSelected = _selectedCategory == cat;
-              return Padding(
-                padding: const EdgeInsets.only(right: 6.0),
-                child: ChoiceChip(
-                  label: Text(cat),
-                  selected: isSelected,
-                  onSelected: (_) => setState(() => _selectedCategory = cat),
-                  selectedColor: AppColors.primary,
-                  backgroundColor: AppColors.surfaceCard,
-                  labelStyle: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected
-                        ? Colors.white
-                        : AppColors.onSurfaceVariant,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              );
-            }).toList(),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: AppColors.outlineVariant.withValues(alpha: 0.3),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -1730,39 +1528,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        Text(
-                          post.date,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            color: AppColors.outline,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondaryContainer.withValues(
-                              alpha: 0.4,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            post.categoryTag,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.secondary,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      post.date,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        color: AppColors.outline,
+                      ),
                     ),
                   ],
                 ),

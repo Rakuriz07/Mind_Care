@@ -27,17 +27,17 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
   int _peaceScore = 0;
   int _poppedCount = 0;
   String _currentAffirmation =
-      'Sentuh gelembung cemas di bawah untuk meletuskannya & melepaskan beban! ✨';
+      'Sentuh gelembung cemas di bawah untuk meletuskannya & melepaskan beban! ';
 
   final List<Map<String, String>> _wordPairs = const [
-    {'word': 'Khawatir', 'affirm': 'Saya aman dan hidup di saat ini 🌿'},
-    {'word': 'Beban', 'affirm': 'Saya melepaskan apa yang tidak bisa saya kontrol 🌊'},
-    {'word': 'Stres', 'affirm': 'Setiap napas membawa kedamaian ke jiwa saya 🕊️'},
-    {'word': 'Overthinking', 'affirm': 'Pikiran saya tenang dan jernih seperti air danau 💎'},
-    {'word': 'Lelah', 'affirm': 'Saya mengizinkan tubuh dan pikiran saya beristirahat 🛌'},
-    {'word': 'Cemas', 'affirm': 'Saya lebih kuat dari rasa cemas yang saya rasakan 💪'},
-    {'word': 'Ragu', 'affirm': 'Saya percaya pada potensi dan perjalanan hidup saya 🌟'},
-    {'word': 'Takut', 'affirm': 'Keberanian tumbuh di dalam hati saya setiap hari 🦁'},
+    {'word': 'Khawatir', 'affirm': 'Saya aman dan hidup di saat ini '},
+    {'word': 'Beban', 'affirm': 'Saya melepaskan apa yang tidak bisa saya kontrol '},
+    {'word': 'Stres', 'affirm': 'Setiap napas membawa kedamaian ke jiwa saya '},
+    {'word': 'Overthinking', 'affirm': 'Pikiran saya tenang dan jernih seperti air danau '},
+    {'word': 'Lelah', 'affirm': 'Saya mengizinkan tubuh dan pikiran saya beristirahat '},
+    {'word': 'Cemas', 'affirm': 'Saya lebih kuat dari rasa cemas yang saya rasakan '},
+    {'word': 'Ragu', 'affirm': 'Saya percaya pada potensi dan perjalanan hidup saya '},
+    {'word': 'Takut', 'affirm': 'Keberanian tumbuh di dalam hati saya setiap hari '},
   ];
 
   late List<BubbleData> _bubbles;
@@ -61,9 +61,6 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
   ];
 
   // --- GAME 3: KARTU AFIRMASI STATE ---
-  int _currentCardIndex = 0;
-  bool _isCardFlipped = false;
-
   final List<Map<String, String>> _affirmationCards = const [
     {
       'title': 'Ketenangan Hati',
@@ -94,6 +91,96 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
       'quote': 'Tarik napas dalam-dalam. Nikmati momen ini karena di sinilah kehidupan sesungguhnya berada.',
       'icon': '☀️',
       'category': 'Presence',
+    },
+    {
+      'title': 'Apresiasi Diri',
+      'quote': 'Tubuh dan pikiran Anda telah berjuang keras. Berikan istirahat dan kasih sayang yang hangat.',
+      'icon': '💖',
+      'category': 'Self-Care',
+    },
+    {
+      'title': 'Langkah Keberanian',
+      'quote': 'Setiap kemajuan kecil yang Anda buat adalah apresiasi berharga untuk kesehatan mental Anda.',
+      'icon': '🌱',
+      'category': 'Growth',
+    },
+    {
+      'title': 'Kebijaksanaan Diri',
+      'quote': 'Biarkan pikiran negatif lewat seperti awan di langit. Anda adalah langitnya, bukan awannya.',
+      'icon': '☁️',
+      'category': 'Inner Peace',
+    },
+    {
+      'title': 'Harapan Baru',
+      'quote': 'Setiap matahari terbit membawa kesempatan baru untuk memulai kembali dengan hati yang lapang.',
+      'icon': '🌅',
+      'category': 'Hope',
+    },
+    {
+      'title': 'Menghadapi Cemas',
+      'quote': 'Rasa cemas adalah sinyal sementara, bukan takdir Anda. Anda jauh lebih kuat daripada ketakutan Anda.',
+      'icon': '🛡️',
+      'category': 'Courage',
+    },
+    {
+      'title': 'Nilai Diri Sejati',
+      'quote': 'Anda berharga bukan karena apa yang Anda capai, melainkan karena kebaikan di dalam diri Anda.',
+      'icon': '💎',
+      'category': 'Self-Worth',
+    },
+    {
+      'title': 'Kedamaian Pikiran',
+      'quote': 'Lepaskan apa yang tidak bisa Anda kendalikan. Salurkan energi untuk hal-hal baik di depan Anda.',
+      'icon': '🕊️',
+      'category': 'Clarity',
+    },
+    {
+      'title': 'Keheningan Jiwa',
+      'quote': 'Rasakan setiap hembusan napas. Keheningan adalah tempat terbaik untuk memulihkan energi.',
+      'icon': '🧘',
+      'category': 'Mindfulness',
+    },
+    {
+      'title': 'Rasa Syukur',
+      'quote': 'Selalu ada hal sederhana yang patut disyukuri hari ini, sekecil apapun itu.',
+      'icon': '🌻',
+      'category': 'Gratitude',
+    },
+    {
+      'title': 'Keseimbangan Emosi',
+      'quote': 'Semua perasaan Anda valid. Dengarkan dan peluk emosi Anda tanpa mengadili diri sendiri.',
+      'icon': '⚖️',
+      'category': 'Balance',
+    },
+    {
+      'title': 'Proses Pemulihan',
+      'quote': 'Percayalah pada proses pemulihan diri Anda. Setiap hari membawa kesembuhan yang baru.',
+      'icon': '🪴',
+      'category': 'Healing',
+    },
+    {
+      'title': 'Keteguhan Jiwa',
+      'quote': 'Ingatlah bahwa Anda telah berhasil melewati 100% hari-hari tersulit dalam hidup Anda hingga hari ini.',
+      'icon': '⛰️',
+      'category': 'Strength',
+    },
+    {
+      'title': 'Istirahat Nyenyak',
+      'quote': 'Malam adalah saatnya mengistirahatkan pikiran. Biarkan semua kekhawatiran tertidur lelap.',
+      'icon': '🌙',
+      'category': 'Rest',
+    },
+    {
+      'title': 'Kebahagiaan Sederhana',
+      'quote': 'Temukan kedamaian dalam hal-hal sederhana: udara segar, senyuman hangat, atau keheningan pagi.',
+      'icon': '☕',
+      'category': 'Joy',
+    },
+    {
+      'title': 'Kelembutan Hati',
+      'quote': 'Bicaralah pada diri sendiri dengan lembut, sebagaimana Anda berbicara pada sahabat tercinta.',
+      'icon': '💌',
+      'category': 'Kindness',
     },
   ];
 
@@ -226,15 +313,15 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryContainer.withValues(alpha: 0.25),
+                      color: AppColors.softSkyBlue,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.2)),
+                          color: AppColors.iceBlueContainer),
                     ),
                     child: Row(
                       children: [
                         const Icon(Icons.psychology_rounded,
-                            color: AppColors.primary, size: 22),
+                            color: AppColors.skyBlueAccent, size: 22),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -311,14 +398,14 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
         });
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? AppColors.primary : AppColors.surfaceCard,
+        backgroundColor: isSelected ? AppColors.skyBlueAccent : AppColors.surfaceCard,
         foregroundColor: isSelected ? Colors.white : AppColors.onSurfaceVariant,
         elevation: isSelected ? 2 : 0,
         padding: const EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: BorderSide(
-            color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.5),
+            color: isSelected ? AppColors.skyBlueAccent : AppColors.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -359,30 +446,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
         return const RipplesOfPeaceWidget();
       case 2:
         return AffirmationCardWidget(
-          card: _affirmationCards[_currentCardIndex],
-          isCardFlipped: _isCardFlipped,
-          currentCardIndex: _currentCardIndex,
-          totalCards: _affirmationCards.length,
-          onFlipCard: () {
-            setState(() {
-              _isCardFlipped = !_isCardFlipped;
-            });
-          },
-          onPreviousCard: () {
-            setState(() {
-              _isCardFlipped = false;
-              _currentCardIndex =
-                  (_currentCardIndex - 1 + _affirmationCards.length) %
-                      _affirmationCards.length;
-            });
-          },
-          onNextCard: () {
-            setState(() {
-              _isCardFlipped = false;
-              _currentCardIndex =
-                  (_currentCardIndex + 1) % _affirmationCards.length;
-            });
-          },
+          cards: _affirmationCards,
         );
       default:
         return BubbleCalmWidget(

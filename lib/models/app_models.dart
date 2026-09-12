@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:mindcare/constants/app_colors.dart';
 
 class JournalEntry {
   final String id;
@@ -24,6 +25,30 @@ class JournalEntry {
     required this.moodBg,
     required this.tags,
   });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_email': userEmail,
+        'title': title,
+        'date': date,
+        'preview': preview,
+        'mood': mood,
+        'mood_color': moodColor.toARGB32(),
+        'mood_bg': moodBg.toARGB32(),
+        'tags': tags,
+      };
+
+  factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
+        id: json['id'] as String? ?? '',
+        userEmail: json['user_email'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        date: json['date'] as String? ?? '',
+        preview: json['preview'] as String? ?? '',
+        mood: json['mood'] as String? ?? 'Senang 😊',
+        moodColor: Color(json['mood_color'] as int? ?? AppColors.secondary.toARGB32()),
+        moodBg: Color(json['mood_bg'] as int? ?? AppColors.secondaryContainer.toARGB32()),
+        tags: List<String>.from(json['tags'] ?? []),
+      );
 }
 
 class ScreeningRecord {
@@ -48,6 +73,30 @@ class ScreeningRecord {
     required this.bg,
     required this.image,
   });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_email': userEmail,
+        'user_name': userName,
+        'title': title,
+        'date': date,
+        'score': score,
+        'color': color.toARGB32(),
+        'bg': bg.toARGB32(),
+        'image': image,
+      };
+
+  factory ScreeningRecord.fromJson(Map<String, dynamic> json) => ScreeningRecord(
+        id: json['id'] as String? ?? '',
+        userEmail: json['user_email'] as String? ?? '',
+        userName: json['user_name'] as String? ?? '',
+        title: json['title'] as String? ?? 'Skrining Mandiri',
+        date: json['date'] as String? ?? '',
+        score: json['score'] as int? ?? 85,
+        color: Color(json['color'] as int? ?? AppColors.secondary.toARGB32()),
+        bg: Color(json['bg'] as int? ?? AppColors.secondaryContainer.toARGB32()),
+        image: json['image'] as String? ?? 'assets/images/senang.png',
+      );
 }
 
 class UserProfile {

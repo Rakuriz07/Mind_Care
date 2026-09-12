@@ -32,8 +32,9 @@ class AppDatabase {
   }
 
   // In-Memory Separated Tables
-  List<Map<String, dynamic>> _patientsTable = [];
+  final List<Map<String, dynamic>> _patientsTable = [];
   Map<String, dynamic> _activeSession = {};
+
 
   List<CommunityPost> _communityPostsTable = [];
   List<AppNotification> _notificationsTable = [];
@@ -65,29 +66,51 @@ class AppDatabase {
         final content = await _dbFile!.readAsString();
         if (content.isNotEmpty) {
           final Map<String, dynamic> dbData = jsonDecode(content);
-          final loadedPatients = List<Map<String, dynamic>>.from(dbData['patients'] ?? []);
+          final loadedPatients = List<Map<String, dynamic>>.from(
+            dbData['patients'] ?? [],
+          );
           for (var loaded in loadedPatients) {
-            final loadedEmail = (loaded['email'] ?? '').toString().toLowerCase();
+            final loadedEmail = (loaded['email'] ?? '')
+                .toString()
+                .toLowerCase();
             if (loadedEmail.isNotEmpty &&
-                !_patientsTable.any((p) => (p['email'] ?? '').toString().toLowerCase() == loadedEmail)) {
+                !_patientsTable.any(
+                  (p) =>
+                      (p['email'] ?? '').toString().toLowerCase() ==
+                      loadedEmail,
+                )) {
               _patientsTable.add(loaded);
             }
           }
           if (_activeSession.isEmpty) {
-            _activeSession = Map<String, dynamic>.from(dbData['active_session'] ?? {});
+            _activeSession = Map<String, dynamic>.from(
+              dbData['active_session'] ?? {},
+            );
           }
-          _journalsTable = List<Map<String, dynamic>>.from(dbData['journals'] ?? []);
-          _screeningsTable = List<Map<String, dynamic>>.from(dbData['screenings'] ?? []);
-          _preferencesTable = Map<String, dynamic>.from(dbData['preferences'] ?? {});
+          _journalsTable = List<Map<String, dynamic>>.from(
+            dbData['journals'] ?? [],
+          );
+          _screeningsTable = List<Map<String, dynamic>>.from(
+            dbData['screenings'] ?? [],
+          );
+          _preferencesTable = Map<String, dynamic>.from(
+            dbData['preferences'] ?? {},
+          );
 
           final rawPosts = dbData['community_posts'] as List? ?? [];
           _communityPostsTable = rawPosts
-              .map((item) => CommunityPost.fromJson(Map<String, dynamic>.from(item)))
+              .map(
+                (item) =>
+                    CommunityPost.fromJson(Map<String, dynamic>.from(item)),
+              )
               .toList();
 
           final rawNotifs = dbData['notifications'] as List? ?? [];
           _notificationsTable = rawNotifs
-              .map((item) => AppNotification.fromJson(Map<String, dynamic>.from(item)))
+              .map(
+                (item) =>
+                    AppNotification.fromJson(Map<String, dynamic>.from(item)),
+              )
               .toList();
 
           // Merge seeds safely without overwriting registered accounts
@@ -105,16 +128,24 @@ class AppDatabase {
 
     _isInitialized = true;
     _patientsTable.removeWhere((p) => p['id'] == 'usr_1' || p['id'] == 'usr_2');
-    _journalsTable.removeWhere((j) => j['id'] == '1' || j['id'] == '2' || j['id'] == '3');
-    _screeningsTable.removeWhere((s) => s['id'] == '1' || s['id'] == '2' || s['id'] == '3');
+    _journalsTable.removeWhere(
+      (j) => j['id'] == '1' || j['id'] == '2' || j['id'] == '3',
+    );
+    _screeningsTable.removeWhere(
+      (s) => s['id'] == '1' || s['id'] == '2' || s['id'] == '3',
+    );
     await _flush();
   }
 
   Future<void> _seedDefaultDatabase({bool mergeOnly = false}) async {
     // Clear any legacy dummy records
     _patientsTable.removeWhere((p) => p['id'] == 'usr_1' || p['id'] == 'usr_2');
-    _journalsTable.removeWhere((j) => j['id'] == '1' || j['id'] == '2' || j['id'] == '3');
-    _screeningsTable.removeWhere((s) => s['id'] == '1' || s['id'] == '2' || s['id'] == '3');
+    _journalsTable.removeWhere(
+      (j) => j['id'] == '1' || j['id'] == '2' || j['id'] == '3',
+    );
+    _screeningsTable.removeWhere(
+      (s) => s['id'] == '1' || s['id'] == '2' || s['id'] == '3',
+    );
 
     // Default Preferences
     if (!mergeOnly || _preferencesTable.isEmpty) {
@@ -129,12 +160,14 @@ class AppDatabase {
 
     // 8. Anonymous Community Posts (Preserve all user posts)
     // Filter out only explicit legacy dummy IDs if existing
-    _communityPostsTable.removeWhere((p) =>
-        p.id == 'post_1' ||
-        p.id == 'post_2' ||
-        p.id == 'post_3' ||
-        p.id == 'post_4' ||
-        p.id == 'post_dummy');
+    _communityPostsTable.removeWhere(
+      (p) =>
+          p.id == 'post_1' ||
+          p.id == 'post_2' ||
+          p.id == 'post_3' ||
+          p.id == 'post_4' ||
+          p.id == 'post_dummy',
+    );
 
     await _flush();
   }
@@ -171,7 +204,9 @@ class AppDatabase {
           'journals': _journalsTable,
           'screenings': _screeningsTable,
           'preferences': _preferencesTable,
-          'community_posts': _communityPostsTable.map((p) => p.toJson()).toList(),
+          'community_posts': _communityPostsTable
+              .map((p) => p.toJson())
+              .toList(),
           'notifications': _notificationsTable.map((n) => n.toJson()).toList(),
           'updated_at': DateTime.now().toIso8601String(),
         };
@@ -205,7 +240,8 @@ class AppDatabase {
     if (patientExists) {
       return {
         'success': false,
-        'message': 'Email sudah terdaftar sebagai Pengguna. Silakan masuk atau gunakan email lain.',
+        'message':
+            'Email sudah terdaftar sebagai Pengguna. Silakan masuk atau gunakan email lain.',
       };
     }
 
@@ -251,7 +287,8 @@ class AppDatabase {
     if (patientIndex == -1) {
       return {
         'success': false,
-        'message': 'Akun Pengguna tidak ditemukan. Silakan daftar terlebih dahulu.',
+        'message':
+            'Akun Pengguna tidak ditemukan. Silakan daftar terlebih dahulu.',
       };
     }
 
@@ -273,6 +310,51 @@ class AppDatabase {
     };
   }
 
+  // --- [CREATE/READ] Login via Google SSO ---
+  Future<Map<String, dynamic>> loginGoogleUser({
+    String email = 'user.google@gmail.com',
+    String name = 'Pengguna Google',
+    String? avatarUrl,
+  }) async {
+    if (!_isInitialized) await init();
+
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanName = name.trim();
+
+    final patientIndex = _patientsTable.indexWhere(
+      (p) => (p['email'] as String).toLowerCase() == cleanEmail,
+    );
+
+    Map<String, dynamic> userMap;
+    if (patientIndex != -1) {
+      userMap = _patientsTable[patientIndex];
+    } else {
+      userMap = {
+        'id': 'usr_google_${DateTime.now().millisecondsSinceEpoch}',
+        'name': cleanName.isNotEmpty ? cleanName : 'Pengguna Google',
+        'email': cleanEmail,
+        'password': 'google_sso_auth',
+        'phone': '+62 812 3456 7890',
+        'avatar_url':
+            avatarUrl ??
+            'https://lh3.googleusercontent.com/a/default-user=s96-c',
+        'member_since': 'Anggota sejak ${_getCurrentMonthYear()}',
+        'role': 'patient',
+        'created_at': DateTime.now().toIso8601String(),
+      };
+      _patientsTable.insert(0, userMap);
+    }
+
+    _activeSession = Map<String, dynamic>.from(userMap);
+    await _flush();
+
+    return {
+      'success': true,
+      'message': 'Berhasil masuk dengan akun Google ✨',
+      'user': userMap,
+    };
+  }
+
   /// Logout active session
   Future<void> logout() async {
     _activeSession = {};
@@ -284,7 +366,9 @@ class AppDatabase {
     Uint8List? avatarBytes;
     if (_activeSession['avatar_bytes_base64'] != null) {
       try {
-        avatarBytes = base64Decode(_activeSession['avatar_bytes_base64'] as String);
+        avatarBytes = base64Decode(
+          _activeSession['avatar_bytes_base64'] as String,
+        );
       } catch (_) {}
     }
 
@@ -292,10 +376,13 @@ class AppDatabase {
       name: _activeSession['name'] ?? 'Pengguna MindCare',
       email: _activeSession['email'] ?? '',
       phone: _activeSession['phone'] ?? '+62 812 3456 7890',
-      avatarUrl: _activeSession['avatar_url'] ??
+      avatarUrl:
+          _activeSession['avatar_url'] ??
           'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
       avatarBytes: avatarBytes,
-      memberSince: _activeSession['member_since'] ?? 'Anggota sejak ${_getCurrentMonthYear()}',
+      memberSince:
+          _activeSession['member_since'] ??
+          'Anggota sejak ${_getCurrentMonthYear()}',
       role: _activeSession['role'] ?? 'patient',
     );
   }
@@ -345,7 +432,8 @@ class AppDatabase {
     required String oldPassword,
     required String newPassword,
   }) async {
-    final currentPassword = _activeSession['password'] as String? ?? 'password123';
+    final currentPassword =
+        _activeSession['password'] as String? ?? 'password123';
     if (oldPassword != currentPassword) {
       return {
         'success': false,
@@ -373,19 +461,22 @@ class AppDatabase {
     }
 
     await _flush();
-    return {
-      'success': true,
-      'message': 'Kata sandi berhasil diperbarui!',
-    };
+    return {'success': true, 'message': 'Kata sandi berhasil diperbarui!'};
   }
 
   // --- [READ] Jurnal: Membaca daftar jurnal pengguna ---
   List<JournalEntry> getJournals([String? userEmail]) {
-    final targetEmail = (userEmail ?? _activeSession['email'] ?? '').toString().toLowerCase().trim();
+    final targetEmail = (userEmail ?? _activeSession['email'] ?? '')
+        .toString()
+        .toLowerCase()
+        .trim();
     if (targetEmail.isEmpty) return [];
 
     final userJournals = _journalsTable.where((map) {
-      final recordEmail = (map['user_email'] ?? '').toString().toLowerCase().trim();
+      final recordEmail = (map['user_email'] ?? '')
+          .toString()
+          .toLowerCase()
+          .trim();
       return recordEmail == targetEmail;
     }).toList();
 
@@ -397,8 +488,12 @@ class AppDatabase {
         date: map['date'] as String,
         preview: map['preview'] as String,
         mood: map['mood'] as String,
-        moodColor: Color(map['mood_color'] as int? ?? AppColors.secondary.toARGB32()),
-        moodBg: Color(map['mood_bg'] as int? ?? AppColors.secondaryContainer.toARGB32()),
+        moodColor: Color(
+          map['mood_color'] as int? ?? AppColors.secondary.toARGB32(),
+        ),
+        moodBg: Color(
+          map['mood_bg'] as int? ?? AppColors.secondaryContainer.toARGB32(),
+        ),
         tags: List<String>.from(map['tags'] ?? []),
       );
     }).toList();
@@ -434,11 +529,17 @@ class AppDatabase {
 
   // --- [READ] Skrining: Membaca daftar riwayat skrining pengguna ---
   List<ScreeningRecord> getScreenings([String? userEmail]) {
-    final targetEmail = (userEmail ?? _activeSession['email'] ?? '').toString().toLowerCase().trim();
+    final targetEmail = (userEmail ?? _activeSession['email'] ?? '')
+        .toString()
+        .toLowerCase()
+        .trim();
     if (targetEmail.isEmpty) return [];
 
     final userScreenings = _screeningsTable.where((map) {
-      final recordEmail = (map['user_email'] ?? '').toString().toLowerCase().trim();
+      final recordEmail = (map['user_email'] ?? '')
+          .toString()
+          .toLowerCase()
+          .trim();
       return recordEmail == targetEmail;
     }).toList();
 
@@ -454,7 +555,7 @@ class AppDatabase {
         } else if (score >= 35) {
           resolvedImage = 'assets/images/sedih.png';
         } else {
-          resolvedImage = 'assets/images/STRESS.jpg';
+          resolvedImage = 'assets/images/STRESS.png';
         }
       }
 
@@ -500,14 +601,15 @@ class AppDatabase {
   // --- [DELETE] Skrining: Menghapus catatan hasil skrining berdasarkan ID ---
   Future<void> deleteScreening(String id) async {
     final cleanId = id.trim().toLowerCase();
-    _screeningsTable.removeWhere((item) => (item['id'] ?? '').toString().trim().toLowerCase() == cleanId);
+    _screeningsTable.removeWhere(
+      (item) => (item['id'] ?? '').toString().trim().toLowerCase() == cleanId,
+    );
     await _flush();
   }
 
-
-
   // --- Preferences & Meditation Stats ---
-  int getMeditationCount() => _preferencesTable['meditation_count'] as int? ?? 0;
+  int getMeditationCount() =>
+      _preferencesTable['meditation_count'] as int? ?? 0;
 
   Future<void> incrementMeditationCount() async {
     final current = getMeditationCount();
@@ -515,7 +617,8 @@ class AppDatabase {
     await _flush();
   }
 
-  bool isBiometricEnabled() => _preferencesTable['biometric_enabled'] as bool? ?? false;
+  bool isBiometricEnabled() =>
+      _preferencesTable['biometric_enabled'] as bool? ?? false;
 
   Future<void> setBiometricEnabled(bool enabled) async {
     _preferencesTable['biometric_enabled'] = enabled;
@@ -592,7 +695,10 @@ class AppDatabase {
     await _flush();
   }
 
-  Future<void> addCommunityComment(String postId, CommunityComment comment) async {
+  Future<void> addCommunityComment(
+    String postId,
+    CommunityComment comment,
+  ) async {
     for (var post in _communityPostsTable) {
       if (post.id == postId) {
         post.comments.insert(0, comment);
@@ -625,9 +731,13 @@ class AppDatabase {
     final cleanEmail = userEmail.toLowerCase().trim();
     if (cleanEmail.isEmpty) return List.unmodifiable(_notificationsTable);
     return List.unmodifiable(
-      _notificationsTable.where((n) =>
-        n.recipientEmail.isEmpty || n.recipientEmail.toLowerCase().trim() == cleanEmail
-      ).toList()
+      _notificationsTable
+          .where(
+            (n) =>
+                n.recipientEmail.isEmpty ||
+                n.recipientEmail.toLowerCase().trim() == cleanEmail,
+          )
+          .toList(),
     );
   }
 
@@ -638,7 +748,8 @@ class AppDatabase {
   Future<void> markNotificationsAsRead(String userEmail) async {
     final cleanEmail = userEmail.toLowerCase().trim();
     for (var n in _notificationsTable) {
-      if (cleanEmail.isEmpty || n.recipientEmail.toLowerCase().trim() == cleanEmail) {
+      if (cleanEmail.isEmpty ||
+          n.recipientEmail.toLowerCase().trim() == cleanEmail) {
         n.isRead = true;
       }
     }
@@ -648,8 +759,18 @@ class AppDatabase {
   String _getCurrentMonthYear() {
     final now = DateTime.now();
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${months[now.month - 1]} ${now.year}';
   }

@@ -12,7 +12,36 @@
           "package_name": "com.Rakuriz.mindcare"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "250964083045-1784rj9h5dhfaobupc66lv3k51i7usl0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Rakuriz.mindcare",
+            "certificate_hash": "48d4d6035737424e6736fc1f8dc4caebdb8ab9f2"
+          }
+        },
+        {
+          "client_id": "250964083045-229jn6gm6sc9f6crfocmrr2l5f28bikb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Rakuriz.mindcare",
+            "certificate_hash": "236b1c8a1c57838faf1e55eb1c02b79e6193bef1"
+          }
+        },
+        {
+          "client_id": "250964083045-9473bulbjvkpntd1g4ge0mrtvhqiftsg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Rakuriz.mindcare",
+            "certificate_hash": "b960def8d859038332b2ceff5263ab185d390596"
+          }
+        },
+        {
+          "client_id": "250964083045-fatsns190gb4hsa0s59h9u7b1dlss6rl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBDQ-Fj_BTTGL-4fxG8aYjWZDgbvv2DHpU"
@@ -20,7 +49,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "250964083045-fatsns190gb4hsa0s59h9u7b1dlss6rl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

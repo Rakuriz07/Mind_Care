@@ -50,14 +50,6 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
       'color': AppColors.softMint,
       'textColor': AppColors.secondary,
     },
-    {
-      'label': 'Sangat Senang',
-      'emoji': '🥰',
-      'imageUrl':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuCSfTXtuhL7kTRyw4EzRu1rE85f4k-o-VP37tr2YAZ3hyCOh9aFw3LkZpWvRoU54npHm9d3PYW3HehjboiMqXkDL1ru4WXv_8IwNR--fkiE3ewgVBSB7boP0XpB45t4RlCrD1oLR7wt22uXW2xpnitypmVK5WAn6FBkQo0_8WfjoV64a87bKaoXUj8CitS6QM8YK4BFA7t5BomJHjTApX4SYf91803ScPi1aPBSO6WVqOOxWTZ5iEkdCA',
-      'color': AppColors.softMint,
-      'textColor': AppColors.secondary,
-    },
   ];
 
   // Tags selection state
@@ -413,16 +405,22 @@ class _TulisJurnalScreenState extends State<TulisJurnalScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        mood['label'],
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.onSurfaceVariant,
+                      SizedBox(
+                        width: 72,
+                        child: Text(
+                          mood['label'],
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],

@@ -22,7 +22,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _morningReminder = true;
   bool _nightReminder = true;
   bool _weeklyReport = false;
-  bool _biometricEnabled = true;
 
   @override
   void initState() {
@@ -634,6 +633,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     value: isEnabled,
                     activeThumbColor: AppColors.secondary,
                     onChanged: (val) async {
+                      final messenger = ScaffoldMessenger.of(context);
                       if (val) {
                         // Request Biometric Scan to enable
                         final authRes = await BiometricService.instance
@@ -648,8 +648,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                           setModalState(() {});
                           setState(() {});
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             SnackBar(
                               content: Text(
                                 'Proteksi biometrik (Sidik Jari / Face ID) berhasil diaktifkan! 🔒✨',
@@ -663,8 +662,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           );
                         } else {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             SnackBar(
                               content: Text(
                                 authRes['message'] as String? ??
@@ -685,8 +683,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                         setModalState(() {});
                         setState(() {});
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        messenger.showSnackBar(
                           SnackBar(
                             content: Text(
                               'Proteksi biometrik telah dinonaktifkan.',
@@ -706,14 +703,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
                         final authRes = await BiometricService.instance
                             .authenticate(
                               localizedReason:
                                   'Uji coba pemindaian sidik jari / Face ID pada perangkat Anda',
                             );
 
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        messenger.showSnackBar(
                           SnackBar(
                             content: Text(
                               authRes['message'] as String? ??
@@ -1733,6 +1730,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   }
 
                                   setModalState(() => isLoadingPass = true);
+                                  final nav = Navigator.of(modalContext);
+                                  final messenger = ScaffoldMessenger.of(context);
 
                                   final res = await AppStateService.instance
                                       .changePassword(
@@ -1743,8 +1742,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   setModalState(() => isLoadingPass = false);
 
                                   if (res['success'] == true) {
-                                    Navigator.pop(modalContext);
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    nav.pop();
+                                    messenger.showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           res['message'] ??
@@ -2201,13 +2200,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            AppColors.softPink.withValues(alpha: 0.2),
-            AppColors.softMint.withValues(alpha: 0.25),
+            Color(0xFFBCE3F5), // Soft vibrant pastel blue (left)
+            Color(0xFFE8D5F5), // Soft pastel lavender (center)
+            Color(0xFFF9C8D9), // Soft vibrant pastel pink (right)
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white, width: 1.5),
@@ -2225,29 +2225,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Perkembangan Minggu Ini',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.onSurface,
+              Expanded(
+                child: Text(
+                  'Perkembangan Minggu Ini',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                  ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceCard.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  statusBadgeText,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceCard.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    statusBadgeText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
               ),

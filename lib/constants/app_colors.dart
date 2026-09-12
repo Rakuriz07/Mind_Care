@@ -13,6 +13,9 @@ class AppColors {
   
   static const Color softSunshine = Color(0xFFFFF1A8);
   static const Color softPink = Color(0xFFFFA6B9);
+  static const Color softSkyBlue = Color(0xFFE0F2FE); // Soft relaxing light blue
+  static const Color iceBlueContainer = Color(0xFFBAE6FD); // Calming light sky blue
+  static const Color skyBlueAccent = Color(0xFF0284C7); // Rich sky blue accent
   
   static const Color surfaceCanvas = Color(0xFFF8FAFC);
   static const Color surfaceCard = Color(0xFFFFFFFF);

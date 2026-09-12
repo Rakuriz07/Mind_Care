@@ -42,6 +42,21 @@ class AuthController extends ChangeNotifier {
     return result;
   }
 
+  // --- [READ] Login via Google SSO ---
+  Future<Map<String, dynamic>> loginWithGoogle() async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await AppStateService.instance.loginGoogleUser();
+
+    if (result['success'] != true) {
+      _errorMessage = result['message'];
+    }
+
+    _setLoading(false);
+    return result;
+  }
+
   // --- [CREATE] Mendaftarkan akun user baru ---
   Future<Map<String, dynamic>> registerPatient({
     required String name,

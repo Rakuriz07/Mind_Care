@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mindcare/constants/app_colors.dart';
+import 'package:mindcare/services/firebase_auth_service.dart';
 import 'package:mindcare/services/app_state_service.dart';
 import 'package:mindcare/views/main_navigation_screen.dart';
 import 'package:mindcare/views/login_screen.dart';
@@ -23,6 +25,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
+  final FirebaseAuthService _authService = FirebaseAuthService();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -41,17 +46,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final confirmPassword = _confirmPasswordController.text;
 
     if (name.isEmpty) {
-      _showError('Silakan masukkan nama lengkap Anda.');
+      _showError('Nama wajib diisi.');
       return;
     }
 
     if (email.isEmpty) {
-      _showError('Silakan masukkan alamat email Anda.');
+      _showError('Email wajib diisi.');
+      return;
+    }
+
+    if (!email.contains('@')) {
+      _showError('Format email tidak valid.');
       return;
     }
 
     if (password.length < 6) {
-      _showError('Kata sandi minimal 6 karakter.');
+      _showError('Password minimal 6 karakter.');
       return;
     }
 
@@ -62,21 +72,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    final res = await AppStateService.instance.registerPatient(
-      name: name,
-      email: email,
-      password: password,
-      phone: phone.isNotEmpty ? phone : '+62 812 3456 7890',
-    );
+    try {
+      final userCredential = await _authService.registerWithEmailAndPassword(
+        name: name,
+        email: email,
+        password: password,
+      );
 
-    setState(() => _isLoading = false);
+      final user = userCredential.user;
+      if (user != null) {
+        await AppStateService.instance.registerPatient(
+          name: name,
+          email: email,
+          password: password,
+          phone: phone.isNotEmpty ? phone : '+62 812 3456 7890',
+        );
+      }
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (res['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res['message'] ?? 'Pendaftaran berhasil! Selamat datang di MindCare 🎉'),
+        const SnackBar(
+          content: Text('Registrasi berhasil!'),
           backgroundColor: AppColors.secondary,
         ),
       );
@@ -84,8 +101,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
       );
-    } else {
-      _showError(res['message'] ?? 'Gagal mendaftar. Silakan coba lagi.');
+    } on FirebaseAuthException catch (e) {
+      String message = 'Registrasi gagal';
+      if (e.code == 'email-already-in-use') {
+        message = 'Email sudah digunakan';
+      } else if (e.code == 'weak-password') {
+        message = 'Password terlalu lemah';
+      } else if (e.message != null) {
+        message = e.message!;
+      }
+
+      if (!mounted) return;
+      _showError(message);
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Terjadi kesalahan: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -209,7 +243,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // --- Main Form Card ---
   Widget _buildFormCard() {
-    return Container(
+    return Form(
+      key: _formKey,
+      child: Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         color: AppColors.surfaceCard.withValues(alpha: 0.95),
@@ -333,7 +369,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   // --- Helper Widgets ---

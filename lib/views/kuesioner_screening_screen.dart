@@ -23,11 +23,40 @@ class _KuesionerScreeningScreenState extends State<KuesionerScreeningScreen> {
 
   void _onNextPressed() async {
     if (!_controller.isCurrentQuestionAnswered) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      final mediaQuery = MediaQuery.of(context);
+      final topPadding = mediaQuery.padding.top;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Silakan pilih salah satu jawaban terlebih dahulu.'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Silakan pilih salah satu jawaban terlebih dahulu.',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
           backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          dismissDirection: DismissDirection.up,
+          margin: EdgeInsets.only(
+            bottom: mediaQuery.size.height - topPadding - 110,
+            left: 16,
+            right: 16,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       );
       return;

@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:mindcare/database/app_database.dart';
 import 'package:mindcare/database/db_helper.dart';
 import 'package:mindcare/models/app_models.dart';
+import 'package:mindcare/services/firebase_auth_service.dart';
+import 'package:mindcare/services/firebase_community_service.dart';
+import 'package:mindcare/services/firebase_journal_service.dart';
+import 'package:mindcare/services/firebase_messaging_service.dart';
+import 'package:mindcare/services/firebase_screening_service.dart';
+import 'package:mindcare/services/firebase_storage_service.dart';
 
 class AppStateService extends ChangeNotifier {
   static final AppStateService _instance = AppStateService._internal();
@@ -51,7 +57,14 @@ class AppStateService extends ChangeNotifier {
   }
   int get meditationCount => _meditationCount;
   List<CommunityPost> get realTimeCommunityPosts => AppDatabase.instance.getCommunityPosts();
-  Stream<List<CommunityPost>> get realTimeCommunityStream => AppDatabase.instance.communityPostsStream;
+  Stream<List<CommunityPost>> get realTimeCommunityStream {
+    try {
+      return FirebaseCommunityService.instance
+          .streamCommunityPosts(currentUserEmail: _userProfile.email);
+    } catch (_) {
+      return AppDatabase.instance.communityPostsStream;
+    }
+  }
 
   Future<void> _initDatabase() async {
     await AppDatabase.instance.init();
@@ -64,12 +77,46 @@ class AppStateService extends ChangeNotifier {
     _refreshUserData();
     _isReady = true;
     notifyListeners();
+
+    try {
+      await FirebaseMessagingService.instance
+          .init(currentUserEmail: _userProfile.email);
+    } catch (_) {}
   }
 
-  void _refreshUserData() {
+  void _refreshUserData() async {
     _journals = AppDatabase.instance.getJournals(_userProfile.email);
     _screeningHistory = AppDatabase.instance.getScreenings(_userProfile.email);
     _meditationCount = AppDatabase.instance.getMeditationCount();
+
+    if (_userProfile.email.isNotEmpty) {
+      try {
+        final cloudJournals = await FirebaseJournalService.instance
+            .getJournals(_userProfile.email);
+        if (cloudJournals.isNotEmpty) {
+          for (var cloud in cloudJournals) {
+            if (!_journals.any((local) => local.id == cloud.id)) {
+              _journals.add(cloud);
+              AppDatabase.instance.insertJournal(cloud);
+            }
+          }
+          _journals.sort((a, b) => b.id.compareTo(a.id));
+        }
+
+        final cloudScreenings = await FirebaseScreeningService.instance
+            .getScreeningHistory(_userProfile.email);
+        if (cloudScreenings.isNotEmpty) {
+          for (var cloud in cloudScreenings) {
+            if (!_screeningHistory.any((local) => local.id == cloud.id)) {
+              _screeningHistory.add(cloud);
+              AppDatabase.instance.insertScreening(cloud);
+            }
+          }
+          _screeningHistory.sort((a, b) => b.id.compareTo(a.id));
+        }
+        notifyListeners();
+      } catch (_) {}
+    }
   }
 
   // ==========================================
@@ -122,7 +169,33 @@ class AppStateService extends ChangeNotifier {
     return res;
   }
 
+  Future<Map<String, dynamic>> loginGoogleUser({
+    String email = 'user.google@gmail.com',
+    String name = 'Pengguna Google',
+    String? avatarUrl,
+  }) async {
+    final res = await AppDatabase.instance.loginGoogleUser(
+      email: email,
+      name: name,
+      avatarUrl: avatarUrl,
+    );
+
+    if (res['success'] == true) {
+      _userProfile = AppDatabase.instance.getUserProfile();
+      _refreshUserData();
+      if (res['user'] != null && res['user'] is Map<String, dynamic>) {
+        await DbHelper.instance.syncUser(res['user'] as Map<String, dynamic>);
+      }
+      await DbHelper.instance.setActiveSession(_userProfile.email);
+      notifyListeners();
+    }
+    return res;
+  }
+
   Future<void> logout() async {
+    try {
+      await FirebaseAuthService().signOut();
+    } catch (_) {}
     await AppDatabase.instance.logout();
     await DbHelper.instance.logout();
     _journals = [];
@@ -172,6 +245,13 @@ class AppStateService extends ChangeNotifier {
       experienceYears: _userProfile.experienceYears,
       consultationFee: _userProfile.consultationFee,
     );
+
+    FirebaseAuthService().updateUserProfileInFirestore(
+      email: _userProfile.email,
+      name: _userProfile.name,
+      phone: _userProfile.phone,
+    );
+
     notifyListeners();
   }
 
@@ -183,7 +263,7 @@ class AppStateService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateAvatarBytes(Uint8List bytes, [File? file]) {
+  void updateAvatarBytes(Uint8List bytes, [File? file]) async {
     _userProfile.avatarBytes = bytes;
     _userProfile.avatarFile = file;
 
@@ -191,6 +271,24 @@ class AppStateService extends ChangeNotifier {
       avatarBytes: bytes,
     );
     notifyListeners();
+
+    try {
+      final downloadUrl = await FirebaseStorageService.instance.uploadProfileImage(
+        userEmail: _userProfile.email,
+        imageBytes: bytes,
+        file: file,
+      );
+
+      if (downloadUrl != null && downloadUrl.isNotEmpty) {
+        _userProfile.avatarUrl = downloadUrl;
+        AppDatabase.instance.saveUserProfile(avatarUrl: downloadUrl);
+        FirebaseAuthService().updateUserProfileInFirestore(
+          email: _userProfile.email,
+          avatarUrl: downloadUrl,
+        );
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   void updateAvatarUrl(String url) {
@@ -201,6 +299,12 @@ class AppStateService extends ChangeNotifier {
     AppDatabase.instance.saveUserProfile(
       avatarUrl: url,
     );
+
+    FirebaseAuthService().updateUserProfileInFirestore(
+      email: _userProfile.email,
+      avatarUrl: url,
+    );
+
     notifyListeners();
   }
 
@@ -222,6 +326,7 @@ class AppStateService extends ChangeNotifier {
 
     _journals.insert(0, entryWithUser);
     AppDatabase.instance.insertJournal(entryWithUser);
+    FirebaseJournalService.instance.saveJournal(entryWithUser);
     notifyListeners();
   }
 
@@ -229,6 +334,7 @@ class AppStateService extends ChangeNotifier {
   void deleteJournal(String id) {
     _journals.removeWhere((item) => item.id == id);
     AppDatabase.instance.deleteJournal(id);
+    FirebaseJournalService.instance.deleteJournal(id);
     notifyListeners();
   }
 
@@ -248,6 +354,7 @@ class AppStateService extends ChangeNotifier {
 
     _screeningHistory.insert(0, recordWithUser);
     AppDatabase.instance.insertScreening(recordWithUser);
+    FirebaseScreeningService.instance.saveScreeningRecord(recordWithUser);
     notifyListeners();
   }
 
@@ -257,6 +364,7 @@ class AppStateService extends ChangeNotifier {
       final record = _screeningHistory[index];
       _screeningHistory.removeAt(index);
       await AppDatabase.instance.deleteScreening(record.id);
+      await FirebaseScreeningService.instance.deleteScreeningRecord(record.id);
       notifyListeners();
     }
   }
@@ -266,6 +374,7 @@ class AppStateService extends ChangeNotifier {
     final cleanId = id.trim().toLowerCase();
     _screeningHistory.removeWhere((item) => item.id.trim().toLowerCase() == cleanId);
     await AppDatabase.instance.deleteScreening(id);
+    await FirebaseScreeningService.instance.deleteScreeningRecord(id);
     notifyListeners();
   }
 
@@ -287,18 +396,21 @@ class AppStateService extends ChangeNotifier {
   // --- [CREATE] Komunitas: Membuat postingan baru ---
   void addCommunityPost(CommunityPost post) {
     AppDatabase.instance.insertCommunityPost(post);
+    FirebaseCommunityService.instance.createPost(post);
     notifyListeners();
   }
 
   // --- [DELETE] Komunitas: Menghapus postingan ---
   void deleteCommunityPost(String postId) {
     AppDatabase.instance.deleteCommunityPost(postId);
+    FirebaseCommunityService.instance.deletePost(postId);
     notifyListeners();
   }
 
   // --- [DELETE] Komunitas: Menghapus komentar ---
   void deleteCommunityComment(String postId, String commentId) {
     AppDatabase.instance.deleteCommunityComment(postId, commentId);
+    FirebaseCommunityService.instance.deleteComment(postId, commentId);
     notifyListeners();
   }
 
@@ -326,11 +438,40 @@ class AppStateService extends ChangeNotifier {
       senderPseudonym: senderPseudonym,
       senderAvatar: senderAvatar,
     );
+    FirebaseCommunityService.instance.toggleLike(
+      postId,
+      _userProfile.email,
+      senderPseudonym: senderPseudonym,
+      senderAvatar: senderAvatar,
+    );
     notifyListeners();
   }
 
   void addCommentToPost(String postId, CommunityComment comment) {
     AppDatabase.instance.addCommunityComment(postId, comment);
+
+    final posts = AppDatabase.instance.getCommunityPosts();
+    final postAuthorEmail = posts
+        .firstWhere(
+          (p) => p.id == postId,
+          orElse: () => CommunityPost(
+            id: postId,
+            authorPseudonym: '',
+            authorAvatar: '',
+            content: '',
+            categoryTag: '',
+            likesCount: 0,
+            commentsCount: 0,
+            date: '',
+          ),
+        )
+        .authorEmail;
+
+    FirebaseCommunityService.instance.addComment(
+      postId,
+      comment,
+      postAuthorEmail: postAuthorEmail,
+    );
     notifyListeners();
   }
 }

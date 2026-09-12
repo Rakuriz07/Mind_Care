@@ -24,7 +24,8 @@ class ScreeningController extends ChangeNotifier {
   double get progress => (_currentQuestionIndex + 1) / totalQuestions;
   bool get isLastQuestion => _currentQuestionIndex == totalQuestions - 1;
   bool get hasPreviousQuestion => _currentQuestionIndex > 0;
-  bool get isCurrentQuestionAnswered => _answers.containsKey(_currentQuestionIndex);
+  bool get isCurrentQuestionAnswered =>
+      _answers.containsKey(_currentQuestionIndex);
   int? get currentSelectedOptionIndex => _answers[_currentQuestionIndex];
 
   // --- [READ] Membaca riwayat skrining user ---
@@ -117,7 +118,7 @@ class ScreeningController extends ChangeNotifier {
       title = 'Tingkat Stres Tinggi';
       color = AppColors.error;
       bg = AppColors.errorContainer;
-      imageUrl = 'assets/images/STRESS.jpg';
+      imageUrl = 'assets/images/STRESS.png';
     }
 
     final record = ScreeningRecord(
@@ -150,4 +151,3 @@ class ScreeningController extends ChangeNotifier {
     return record;
   }
 }
-

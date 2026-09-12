@@ -205,31 +205,18 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
 
   // --- Hero Section ---
   Widget _buildHeroSection() {
-    return Column(
-      children: [
-        Image.asset(
-          'assets/images/logo.png',
-          height: 140,
-          width: 140,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) => const Icon(
-            Icons.fact_check_rounded,
-            size: 80,
-            color: AppColors.primary,
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        'Bagaimana Kondisi Pikiran & Perasaanmu Saat Ini?',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppColors.onSurface,
+          height: 1.3,
         ),
-        const SizedBox(height: 16),
-        Text(
-          'Bagaimana Kondisi Pikiran & Perasaanmu Saat Ini?',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.onSurface,
-            height: 1.3,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -313,21 +300,20 @@ class _ScreeningScreenState extends State<ScreeningScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryContainer,
-                foregroundColor: AppColors.onPrimaryContainer,
-                elevation: 3,
-                shadowColor: AppColors.primaryContainer.withValues(alpha: 0.4),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 2,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
               child: Text(
-                'MULAI SCREENING SEKARANG',
+                'Mulai Skrining Sekarang',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.3,
                 ),
               ),
             ),

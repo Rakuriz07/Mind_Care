@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // HELPER FUNCTIONS (Fungsi Bantuan Keamanan)
+    // ==========================================
+    
+    // Memeriksa apakah pengguna telah login / terotentikasi melalui Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Memeriksa apakah ID Pengguna terautentikasi sesuai dengan dokumen
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ==========================================
+    // FIRESTORE SECURITY RULES (MindCare App)
+    // ==========================================
+
+    // 1. Koleksi Profil Pengguna (users)
+    // Hanya pemilik akun yang dapat membaca dan memperbarui data profilnya sendiri
+    match /users/{userId} {
+      allow read, create, update, delete: if isOwner(userId);
+    }
+
+    // 2. Koleksi Skrining Kesehatan Mental (screenings)
+    // Pengguna hanya dapat membaca, membuat, dan menghapus riwayat skrining miliknya sendiri
+    match /screenings/{screeningId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // 3. Koleksi Jurnal Emosi Harian (journals)
+    // Privasi tingkat tinggi: Jurnal pribadi hanya dapat diakses oleh pemiliknya sendiri
+    match /journals/{journalId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // 4. Koleksi Komunitas (community_posts)
+    // Postingan dapat dibaca oleh seluruh pengguna login, tetapi hanya pembuat yang dapat menghapus postingannya
+    match /community_posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isAuthenticated(); // Mengizinkan fitur Suka (Likes) & Komentar dari pengguna lain
+      allow delete: if isAuthenticated() && resource.data.authorId == request.auth.uid;
+    }
+
+    // 5. Koleksi Notifikasi (notifications)
+    // Pengguna hanya dapat membaca dan memperbarui notifikasi miliknya sendiri
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated();
+    }
+  }
+}

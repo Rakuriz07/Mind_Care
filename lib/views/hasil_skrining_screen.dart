@@ -5,7 +5,7 @@ import 'package:mindcare/views/daftar_jurnal_screen.dart';
 import 'package:mindcare/views/game_relaksasi_screen.dart';
 import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/meditasi_tidur_screen.dart';
-import 'package:mindcare/views/tips_tidur_nyenyak_screen.dart';
+import 'package:mindcare/views/tips_pola_makan_screen.dart';
 
 class HasilSkriningScreen extends StatelessWidget {
   final int score; // 0 - 100 scale (or converted from raw points)
@@ -22,7 +22,6 @@ class HasilSkriningScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Dynamic mood data mapping based on score
-    final String resultCategory;
     final String headline;
     final String description;
     final String moodImageUrl;
@@ -32,7 +31,6 @@ class HasilSkriningScreen extends StatelessWidget {
 
     if (score >= 75) {
       // Condition: Healthy / Senang
-      resultCategory = 'Sangat Baik';
       headline = 'Hasil Skrining Kamu: Sangat Baik';
       description =
           'Berdasarkan jawabanmu, kondisi mentalmu saat ini berada dalam rentang yang sehat. Kamu merasa tenang dan mampu mengelola stres dengan baik.';
@@ -67,7 +65,6 @@ class HasilSkriningScreen extends StatelessWidget {
       ];
     } else if (score >= 55) {
       // Condition: Mild Stress / Cemas
-      resultCategory = 'Kecemasan Ringan';
       headline = 'Hasil Skrining Kamu: Perlu Relaksasi';
       description =
           'Kamu mungkin sedang mengalami sedikit beban pikiran atau kecemasan akhir-akhir ini. Luangkan waktu untuk mengatur pernapasan dan istirahat.';
@@ -89,22 +86,21 @@ class HasilSkriningScreen extends StatelessWidget {
           ),
         },
         {
-          'icon': Icons.bedtime_outlined,
-          'title': 'Tips Tidur Nyenyak',
-          'desc': 'Kurangi insomnia dan pikiran cemas.',
-          'bg': AppColors.softSunshine,
-          'iconColor': AppColors.tertiary,
+          'icon': Icons.restaurant_rounded,
+          'title': 'Tips Pola Makan',
+          'desc': 'Jaga nutrisi usus & kesehatan otak.',
+          'bg': AppColors.softSkyBlue,
+          'iconColor': AppColors.skyBlueAccent,
           'onTap': () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const TipsTidurNyenyakScreen(),
+              builder: (context) => const TipsPolaMakanScreen(),
             ),
           ),
         },
       ];
     } else if (score >= 35) {
       // Condition: Sadness / Sedih
-      resultCategory = 'Sedang Lelah & Sedih';
       headline = 'Hasil Skrining Kamu: Sedang Lelah';
       description =
           'Kamu sedang berada di fase di mana suasana hati merasa sedih dan emosi cukup lelah. Jangan ragu beristirahat dan cerita ke teman terdekat.';
@@ -139,34 +135,19 @@ class HasilSkriningScreen extends StatelessWidget {
       ];
     } else {
       // Condition: Severe Stress / STRESS
-      resultCategory = 'Tingkat Stres Tinggi';
       headline = 'Hasil Skrining Kamu: Perlu Perhatian Khusus';
       description =
-          'Kondisi mentalmu menunjukkan tingkat stres yang cukup tinggi. Disarankan untuk beristirahat dan mempertimbangkan konsultasi dengan profesional.';
-      moodImageUrl = 'assets/images/STRESS.jpg';
+          'Kondisi mentalmu menunjukkan tingkat stres yang cukup tinggi. Disarankan untuk beristirahat dan melatih relaksasi pernapasan.';
+      moodImageUrl = 'assets/images/STRESS.png';
       scoreColor = AppColors.error;
       pulseGlowColor = AppColors.softPink;
       recommendations = [
         {
-          'icon': Icons.psychology_outlined,
-          'title': 'Konsultasi Profesional',
-          'desc': 'Dapatkan pendampingan dari konselor atau psikolog.',
-          'bg': AppColors.softPink,
-          'iconColor': AppColors.error,
-          'onTap': () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Membuka layanan konseling MindCare...'),
-              ),
-            );
-          },
-        },
-        {
           'icon': Icons.sports_esports_rounded,
           'title': 'Game Relaksasi Stres',
           'desc': 'Meletuskan cemas & menyelaraskan napas.',
-          'bg': AppColors.softMint,
-          'iconColor': AppColors.secondary,
+          'bg': AppColors.softPink,
+          'iconColor': AppColors.primary,
           'onTap': () => Navigator.push(
             context,
             MaterialPageRoute(

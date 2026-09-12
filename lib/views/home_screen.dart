@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/services/app_state_service.dart';
 import 'package:mindcare/views/tips_pola_makan_screen.dart';
-import 'package:mindcare/views/tips_tidur_nyenyak_screen.dart';
+import 'package:mindcare/views/meditasi_tidur_screen.dart';
 import 'package:mindcare/views/game_relaksasi_screen.dart';
 import 'package:mindcare/views/profile_screen.dart';
 import 'package:mindcare/views/tulis_jurnal_screen.dart';
@@ -12,10 +13,14 @@ import 'package:mindcare/views/screening_screen.dart';
 import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/community/community_screen.dart';
 
+import 'package:audioplayers/audioplayers.dart';
+import 'package:mindcare/services/local_notification_service.dart';
+
 class HomeScreen extends StatefulWidget {
   final bool isRootTab;
+  final ValueChanged<int>? onSelectTab;
 
-  const HomeScreen({super.key, this.isRootTab = false});
+  const HomeScreen({super.key, this.isRootTab = false, this.onSelectTab});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -23,6 +28,394 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedNavIndex = 0;
+  TimeOfDay _alarmTime = const TimeOfDay(hour: 6, minute: 0);
+  bool _isAlarmEnabled = true;
+  String _selectedAlarmSound = 'segar';
+
+  final List<Map<String, dynamic>> _alarmSoundOptions = const [
+    {
+      'id': 'segar',
+      'title': 'Hutan & Gemercik Air 🌿',
+      'subtitle': 'Suara gemercik air & kicau burung pagi yang menenangkan',
+      'icon': Icons.forest_rounded,
+      'audioAsset': 'audio/segar.mp3',
+    },
+    {
+      'id': 'senang',
+      'title': 'Melodi Lembut 🎹',
+      'subtitle': 'Alunan piano akustik lembut penyegar suasana',
+      'icon': Icons.music_note_rounded,
+      'audioAsset': 'audio/senang.mp3',
+    },
+    {
+      'id': 'up',
+      'title': 'Semangat Pagi ☀️',
+      'subtitle': 'Irama riang membangunkan energi positif',
+      'icon': Icons.wb_sunny_rounded,
+      'audioAsset': 'audio/up.mp3',
+    },
+    {
+      'id': 'standard',
+      'title': 'Lonceng Standar 🔔',
+      'subtitle': 'Nada sistem bawaan standar',
+      'icon': Icons.notifications_active_rounded,
+      'audioAsset': null,
+    },
+  ];
+
+  Map<String, dynamic> _getSoundInfo(String id) {
+    return _alarmSoundOptions.firstWhere(
+      (item) => item['id'] == id,
+      orElse: () => _alarmSoundOptions.first,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedAlarmSettings();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scheduleMorningNotification();
+    });
+  }
+
+  Future<void> _scheduleMorningNotification() async {
+    try {
+      if (_isAlarmEnabled) {
+        await LocalNotificationService.instance.scheduleWakeupAlarm(
+          hour: _alarmTime.hour,
+          minute: _alarmTime.minute,
+          title: 'Alarm Bangun Pagi ☀️',
+          body: 'Waktunya bangun & menyambut hari dengan energi positif ✨',
+        );
+      } else {
+        await LocalNotificationService.instance.cancelWakeupAlarm();
+      }
+      await LocalNotificationService.instance.scheduleDailyMorningNotification(hour: 7, minute: 0);
+    } catch (_) {}
+  }
+
+  Future<void> _loadSavedAlarmSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hour = prefs.getInt('wakeup_alarm_hour') ?? 6;
+      final minute = prefs.getInt('wakeup_alarm_minute') ?? 0;
+      final enabled = prefs.getBool('wakeup_alarm_enabled') ?? true;
+      final sound = prefs.getString('wakeup_alarm_sound') ?? 'segar';
+
+      if (mounted) {
+        setState(() {
+          _alarmTime = TimeOfDay(hour: hour, minute: minute);
+          _isAlarmEnabled = enabled;
+          _selectedAlarmSound = sound;
+        });
+        _scheduleMorningNotification();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveAlarmSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('wakeup_alarm_hour', _alarmTime.hour);
+      await prefs.setInt('wakeup_alarm_minute', _alarmTime.minute);
+      await prefs.setBool('wakeup_alarm_enabled', _isAlarmEnabled);
+      await prefs.setString('wakeup_alarm_sound', _selectedAlarmSound);
+      await _scheduleMorningNotification();
+    } catch (_) {}
+  }
+
+  void _showAlarmSoundSelectorModal() {
+    AudioPlayer? modalAudioPlayer;
+    String tempSelectedSound = _selectedAlarmSound;
+    String? playingSoundId;
+
+    Future<void> stopAndDisposePlayer() async {
+      final player = modalAudioPlayer;
+      modalAudioPlayer = null;
+      if (player != null) {
+        try {
+          await player.stop();
+          await player.dispose();
+        } catch (_) {}
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceCard,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Pilih Suara Alarm Bangun Pagi',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          await stopAndDisposePlayer();
+                          if (modalContext.mounted) {
+                            Navigator.pop(modalContext);
+                          }
+                        },
+                        icon: const Icon(Icons.close_rounded),
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'Nada yang menenangkan membantu Anda bangun tanpa rasa kaget & stres.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ..._alarmSoundOptions.map((item) {
+                    final isSelected = tempSelectedSound == item['id'];
+                    final isPlaying = playingSoundId == item['id'];
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.softSkyBlue.withValues(alpha: 0.25)
+                            : AppColors.surfaceCanvas,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.skyBlueAccent
+                              : AppColors.outlineVariant.withValues(alpha: 0.3),
+                          width: isSelected ? 1.8 : 1,
+                        ),
+                      ),
+                      child: ListTile(
+                        onTap: () {
+                          setModalState(() {
+                            tempSelectedSound = item['id'];
+                          });
+                        },
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 4,
+                        ),
+                        leading: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.softSkyBlue
+                                : AppColors.surfaceVariant.withValues(alpha: 0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            item['icon'] as IconData,
+                            color: isSelected
+                                ? AppColors.skyBlueAccent
+                                : AppColors.onSurfaceVariant,
+                            size: 20,
+                          ),
+                        ),
+                        title: Text(
+                          item['title'] as String,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        subtitle: Text(
+                          item['subtitle'] as String,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (item['audioAsset'] != null)
+                              IconButton(
+                                icon: Icon(
+                                  isPlaying
+                                      ? Icons.stop_circle_rounded
+                                      : Icons.play_circle_fill_rounded,
+                                  color: AppColors.skyBlueAccent,
+                                  size: 28,
+                                ),
+                                onPressed: () async {
+                                  if (isPlaying) {
+                                    await stopAndDisposePlayer();
+                                    setModalState(() {
+                                      playingSoundId = null;
+                                    });
+                                  } else {
+                                    await stopAndDisposePlayer();
+                                    final newPlayer = AudioPlayer();
+                                    modalAudioPlayer = newPlayer;
+                                    try {
+                                      await newPlayer.play(
+                                        AssetSource(item['audioAsset'] as String),
+                                      );
+                                    } catch (_) {}
+                                    setModalState(() {
+                                      playingSoundId = item['id'] as String;
+                                    });
+                                  }
+                                },
+                              ),
+                            Icon(
+                              isSelected
+                                  ? Icons.check_circle_rounded
+                                  : Icons.radio_button_unchecked_rounded,
+                              color: isSelected
+                                  ? AppColors.skyBlueAccent
+                                  : AppColors.outlineVariant.withValues(alpha: 0.6),
+                              size: 22,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await stopAndDisposePlayer();
+                        setState(() {
+                          _selectedAlarmSound = tempSelectedSound;
+                        });
+                        _saveAlarmSettings();
+                        if (modalContext.mounted) {
+                          Navigator.pop(modalContext);
+                        }
+
+                        final soundTitle = _getSoundInfo(_selectedAlarmSound)['title'];
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '🎵 Suara alarm bangun pagi diubah ke "$soundTitle"',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              backgroundColor: AppColors.primary,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.skyBlueAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                      child: Text(
+                        'SIMPAN NADA ALARM',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) async {
+      await stopAndDisposePlayer();
+    });
+  }
+
+  Future<void> _selectCustomAlarmTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _alarmTime,
+      helpText: 'PILIH JAM ALARM BANGUN PAGI ANDA',
+      confirmText: 'SIMPAN',
+      cancelText: 'BATAL',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.onSurface,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _alarmTime) {
+      setState(() {
+        _alarmTime = picked;
+        _isAlarmEnabled = true;
+      });
+      _saveAlarmSettings();
+
+      if (mounted) {
+        final formattedTime =
+            '${picked.hour.toString().padLeft(2, '0')}.${picked.minute.toString().padLeft(2, '0')}';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '☀️ Alarm bangun pagi berhasil diatur untuk jam $formattedTime WIB',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,22 +440,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       // 1. Top Header Bar
                       _buildHeader(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
-                      // 2. Screening Banner Card
+                      // 2. HERO FEATURE (Highlighted #1): Screening Kesehatan Mental
                       _buildScreeningBanner(),
                       const SizedBox(height: 24),
 
-                      // 3. Nutrition Tips Section
-                      _buildNutritionTipsSection(),
+                      // 3. WAKE-UP ALARM CARD
+                      _buildWakeupAlarmCard(),
                       const SizedBox(height: 24),
 
-                      // 4. Daily Recommendations Grid
-                      _buildRecommendationsSection(),
-                      const SizedBox(height: 24),
-
-                      // 5. Daily Journal Section
+                      // 4. CORE FEATURE (Highlighted #2): Jurnal Harian Kamu
                       _buildDailyJournalSection(),
+                      const SizedBox(height: 24),
+
+                      // 5. Rekomendasi Fitur (Game Relaksasi & Tips Pola Makan)
+                      _buildRecommendationsSection(),
                     ],
                   ),
                 ),
@@ -96,6 +489,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _getMoodEmoji(String mood) {
+    switch (mood) {
+      case 'Sangat Sedih':
+        return '😭';
+      case 'Sedih':
+        return '🙁';
+      case 'Biasa Saja':
+        return '😐';
+      case 'Senang':
+        return '😊';
+      default:
+        return '😊';
+    }
+  }
+
   String _formatGreetingName(String fullName) {
     final cleanName = fullName.trim();
     if (cleanName.isEmpty) return 'Pengguna';
@@ -114,54 +522,44 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(
           child: Row(
             children: [
-              // Profile Avatar
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProfileScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primaryFixed, width: 2.5),
-                  ),
-                  child: ClipOval(
-                    child: profile.avatarBytes != null
-                        ? Image.memory(profile.avatarBytes!, fit: BoxFit.cover)
-                        : profile.avatarFile != null
-                        ? Image.file(profile.avatarFile!, fit: BoxFit.cover)
-                        : profile.avatarUrl.startsWith('assets/')
-                        ? Image.asset(
-                            profile.avatarUrl,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                                  color: AppColors.primaryFixed,
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: AppColors.primary,
-                                  ),
+              // Profile Avatar (Non-tappable)
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primaryFixed, width: 2.5),
+                ),
+                child: ClipOval(
+                  child: profile.avatarBytes != null
+                      ? Image.memory(profile.avatarBytes!, fit: BoxFit.cover)
+                      : profile.avatarFile != null
+                      ? Image.file(profile.avatarFile!, fit: BoxFit.cover)
+                      : profile.avatarUrl.startsWith('assets/')
+                      ? Image.asset(
+                          profile.avatarUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                color: AppColors.primaryFixed,
+                                child: const Icon(
+                                  Icons.person,
+                                  color: AppColors.primary,
                                 ),
-                          )
-                        : Image.network(
-                            profile.avatarUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                                  color: AppColors.primaryFixed,
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: AppColors.primary,
-                                  ),
+                              ),
+                        )
+                      : Image.network(
+                          profile.avatarUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                color: AppColors.primaryFixed,
+                                child: const Icon(
+                                  Icons.person,
+                                  color: AppColors.primary,
                                 ),
-                          ),
-                  ),
+                              ),
+                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -179,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Text(
-                      '${_formatGreetingName(profile.name)} ✨',
+                      _formatGreetingName(profile.name),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
@@ -194,7 +592,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        // Action Icon Button (Personal Icon at Top Right)
+        // Personal Profile Icon Button
         InkWell(
           onTap: () {
             Navigator.push(
@@ -207,12 +605,12 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 40,
             height: 40,
             decoration: const BoxDecoration(
-              color: AppColors.softSunshine,
+              color: AppColors.primaryFixed,
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.person_outline_rounded,
-              color: AppColors.onSurface,
+              color: AppColors.primary,
               size: 22,
             ),
           ),
@@ -263,12 +661,16 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ScreeningScreen(),
-                ),
-              );
+              if (widget.onSelectTab != null) {
+                widget.onSelectTab!(1);
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ScreeningScreen(),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -281,10 +683,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             icon: const Icon(Icons.play_circle_fill_rounded, size: 20),
             label: Text(
-              'Mulai Screening',
+              'Mulai Skrining',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -293,149 +695,348 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- Nutrition Tips Section ---
-  Widget _buildNutritionTipsSection() {
-    return Column(
-      children: [
-        // Section Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const Text('🥗', style: TextStyle(fontSize: 18)),
-                const SizedBox(width: 8),
-                Text(
-                  'Tips Menjaga Pola Makan',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const TipsPolaMakanScreen(),
-                  ),
-                );
-              },
-              child: Text(
-                'Lihat Semua',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+  // --- Setel Alarm Bangun Pagi Widget ---
+  Widget _buildWakeupAlarmCard() {
+    final formattedTime =
+        '${_alarmTime.hour.toString().padLeft(2, '0')}.${_alarmTime.minute.toString().padLeft(2, '0')} WIB';
 
-        // Nutrition Card
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const TipsPolaMakanScreen(),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color.fromRGBO(45, 49, 66, 0.05),
-                  blurRadius: 20,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Image Thumbnail
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=300&q=80',
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 80,
-                      height: 80,
-                      color: AppColors.surfaceVariant,
-                      child: const Icon(
-                        Icons.restaurant_rounded,
-                        color: AppColors.primary,
+    final Gradient? cardGradient = _isAlarmEnabled
+        ? const LinearGradient(
+            colors: [
+              Color(0xFFBCE3F5), // Soft vibrant pastel blue (left)
+              Color(0xFFE8D5F5), // Soft pastel lavender (center)
+              Color(0xFFF9C8D9), // Soft vibrant pastel pink (right)
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          )
+        : null;
+
+    final Color? cardBgColor =
+        _isAlarmEnabled ? null : AppColors.surfaceCard;
+    final Color cardBorderColor = _isAlarmEnabled
+        ? Colors.white.withValues(alpha: 0.9)
+        : AppColors.softPink.withValues(alpha: 0.5);
+    final Color iconBgColor = _isAlarmEnabled
+        ? Colors.white
+        : AppColors.softPink.withValues(alpha: 0.4);
+    final Color accentColor = _isAlarmEnabled
+        ? const Color(0xFF8B3A4A) // Deep wine burgundy matching screenshot
+        : AppColors.outline;
+    final Color timeBoxBgColor = _isAlarmEnabled
+        ? Colors.white.withValues(alpha: 0.95)
+        : AppColors.softPink.withValues(alpha: 0.15);
+    final Color timeBoxBorderColor = _isAlarmEnabled
+        ? Colors.white
+        : AppColors.softPink.withValues(alpha: 0.4);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: cardBgColor,
+        gradient: cardGradient,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: cardBorderColor,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _isAlarmEnabled
+                ? const Color.fromRGBO(180, 150, 170, 0.22)
+                : const Color.fromRGBO(45, 49, 66, 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: iconBgColor,
+                        shape: BoxShape.circle,
+                        boxShadow: _isAlarmEnabled
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Icon(
+                        Icons.alarm_rounded,
+                        color: accentColor,
+                        size: 22,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-
-                // Content details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hubungan Usus & Otak',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Konsumsi makanan fermentasi & probiotik untuk menjaga stabilitas hormon serotonin.',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppColors.onSurfaceVariant,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.schedule_outlined,
-                            size: 14,
-                            color: AppColors.outline,
-                          ),
-                          const SizedBox(width: 4),
                           Text(
-                            '3 mnt baca • Nutrisi Mental',
+                            'Alarm Bangun Pagi',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: AppColors.outline,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF2E2433),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _isAlarmEnabled
+                                ? 'Aktif • Bangun segar setiap hari'
+                                : 'Non-aktif',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: _isAlarmEnabled
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: accentColor,
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: _isAlarmEnabled,
+                activeThumbColor: Colors.white,
+                activeTrackColor: const Color(0xFF8B3A4A),
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: const Color(0xFFD0C2C8),
+                onChanged: (val) {
+                  setState(() {
+                    _isAlarmEnabled = val;
+                  });
+                  _saveAlarmSettings();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: timeBoxBgColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: timeBoxBorderColor,
+              ),
+              boxShadow: _isAlarmEnabled
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_filled_rounded,
+                      color: accentColor,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      formattedTime,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: accentColor,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton.icon(
+                  onPressed: _selectCustomAlarmTime,
+                  style: TextButton.styleFrom(
+                    foregroundColor: accentColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit_calendar_rounded, size: 16),
+                  label: Text(
+                    'Ubah Jam',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 10),
+          // Sound Selector Tile
+          InkWell(
+            onTap: _showAlarmSoundSelectorModal,
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: timeBoxBgColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: timeBoxBorderColor,
+                ),
+                boxShadow: _isAlarmEnabled
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getSoundInfo(_selectedAlarmSound)['icon']
+                              as IconData,
+                          size: 18,
+                          color: accentColor,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Nada Alarm',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF6B5A63),
+                                ),
+                              ),
+                              Text(
+                                _getSoundInfo(_selectedAlarmSound)['title']
+                                    as String,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF2E2433),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Ubah Nada',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: accentColor,
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: accentColor,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Divider(
+            color: _isAlarmEnabled
+                ? Colors.white.withValues(alpha: 0.8)
+                : AppColors.surfaceVariant.withValues(alpha: 0.6),
+            height: 1,
+          ),
+          const SizedBox(height: 14),
+
+          // Tombol Memanjang Meditasi Tidur (Warna Biru Tua Midnight Navy)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MeditasiTidurScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E1B4B),
+                foregroundColor: Colors.white,
+                elevation: 2,
+                shadowColor: const Color(0xFF1E1B4B).withValues(alpha: 0.3),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.nights_stay_rounded,
+                    color: AppColors.softSunshine,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Meditasi Tidur',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
+
+
 
   // --- Daily Recommendations Section ---
   Widget _buildRecommendationsSection() {
@@ -443,19 +1044,13 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section Title
-        Row(
-          children: [
-            const Text('✨', style: TextStyle(fontSize: 18)),
-            const SizedBox(width: 8),
-            Text(
-              'Rekomendasi Hari Ini',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
-              ),
-            ),
-          ],
+        Text(
+          'Rekomendasi Hari Ini',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.onSurface,
+          ),
         ),
         const SizedBox(height: 12),
 
@@ -487,14 +1082,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 12),
 
-              // Card 2: Tips Tidur Nyenyak
+              // Card 2: Tips Pola Makan
               Expanded(
                 child: _buildRecommendationCard(
-                  emoji: '🌙',
-                  title: 'Tips Tidur Nyenyak',
-                  subtitle: 'Rutinitas Bebas Gadget',
+                  emoji: '🥗',
+                  title: 'Tips Pola Makan',
+                  subtitle: 'Nutrisi Usus & Otak',
                   buttonLabel: 'Baca Tips',
-                  iconData: Icons.menu_book_rounded,
+                  iconData: Icons.restaurant_rounded,
                   isPrimaryButton: true,
                   buttonBgColor: Colors.transparent,
                   buttonTextColor: AppColors.primary,
@@ -503,7 +1098,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TipsTidurNyenyakScreen(),
+                        builder: (context) => const TipsPolaMakanScreen(),
                       ),
                     );
                   },
@@ -571,7 +1166,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: OutlinedButton(
               onPressed: onTap,
               style: OutlinedButton.styleFrom(
                 backgroundColor: buttonBgColor,
@@ -580,20 +1175,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     : BorderSide.none,
                 padding: const EdgeInsets.symmetric(
                   vertical: 8.0,
-                  horizontal: 8.0,
+                  horizontal: 6.0,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              icon: Icon(iconData, size: 16, color: buttonTextColor),
-              label: Text(
-                buttonLabel,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: buttonTextColor,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(iconData, size: 16, color: buttonTextColor),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      buttonLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: buttonTextColor,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -614,20 +1219,19 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                const Text('📝', style: TextStyle(fontSize: 18)),
-                const SizedBox(width: 8),
-                Text(
-                  'Jurnal Harian Kamu',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
+            Expanded(
+              child: Text(
+                'Jurnal Harian Kamu',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
                 ),
-              ],
+              ),
             ),
+            const SizedBox(width: 8),
             // Replaced 'Tulis' with 'Lihat Penulisan Lainnya'
             InkWell(
               onTap: () {
@@ -688,24 +1292,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_outlined,
-                          size: 14,
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          latest.date,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 14,
                             color: AppColors.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              latest.date,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppColors.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -716,7 +1327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '😊 ${latest.mood}',
+                        '${_getMoodEmoji(latest.mood)} ${latest.mood}',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -935,7 +1546,7 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(0, Icons.home_rounded, 'Home'),
-          _buildNavItem(1, Icons.fact_check_outlined, 'Screening'),
+          _buildNavItem(1, Icons.fact_check_outlined, 'Skrining'),
           _buildNavItem(2, Icons.history_rounded, 'History'),
           _buildNavItem(3, Icons.forum_outlined, 'Komunitas'),
         ],
