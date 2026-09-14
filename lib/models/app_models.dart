@@ -3,6 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mindcare/constants/app_colors.dart';
 
+/// ============================================================================
+/// 📜 MODEL DATA JURNAL EMOSI ([JournalEntry])
+/// ============================================================================
+/// Menguraikan data catatan harian pengguna yang mencakup judul, tanggal,
+/// isi pratinjau, suasana hati (*mood*), warna kartu UI, serta daftar tag.
 class JournalEntry {
   final String id;
   final String userEmail;
@@ -26,6 +31,7 @@ class JournalEntry {
     required this.tags,
   });
 
+  /// Mengubah objek [JournalEntry] menjadi Map JSON untuk disimpan di SQLite/Firestore
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_email': userEmail,
@@ -38,6 +44,7 @@ class JournalEntry {
         'tags': tags,
       };
 
+  /// Mengonversi Map JSON kembali menjadi objek [JournalEntry]
   factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
         id: json['id'] as String? ?? '',
         userEmail: json['user_email'] as String? ?? '',
@@ -51,6 +58,11 @@ class JournalEntry {
       );
 }
 
+/// ============================================================================
+/// 📊 MODEL DATA HASIL SKRINING DASS-21 ([ScreeningRecord])
+/// ============================================================================
+/// Menyimpan hasil tes psikometri DASS-21, meliputi skor kebugaran mental (25-95),
+/// tanggal tes, diagnosis tingkat stres/cemas, serta rincian jawaban 21 soal.
 class ScreeningRecord {
   final String id;
   final String userEmail;
@@ -61,6 +73,7 @@ class ScreeningRecord {
   final Color color;
   final Color bg;
   final String image;
+  final List<Map<String, dynamic>> answers;
 
   ScreeningRecord({
     required this.id,
@@ -72,8 +85,10 @@ class ScreeningRecord {
     required this.color,
     required this.bg,
     required this.image,
+    this.answers = const [],
   });
 
+  /// Mengubah objek hasil skrining ke format Map JSON
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_email': userEmail,
@@ -84,8 +99,10 @@ class ScreeningRecord {
         'color': color.toARGB32(),
         'bg': bg.toARGB32(),
         'image': image,
+        'answers': answers,
       };
 
+  /// Membaca Map JSON menjadi objek [ScreeningRecord]
   factory ScreeningRecord.fromJson(Map<String, dynamic> json) => ScreeningRecord(
         id: json['id'] as String? ?? '',
         userEmail: json['user_email'] as String? ?? '',
@@ -96,9 +113,18 @@ class ScreeningRecord {
         color: Color(json['color'] as int? ?? AppColors.secondary.toARGB32()),
         bg: Color(json['bg'] as int? ?? AppColors.secondaryContainer.toARGB32()),
         image: json['image'] as String? ?? 'assets/images/senang.png',
+        answers: json['answers'] != null
+            ? List<Map<String, dynamic>>.from(
+                (json['answers'] as List).map((x) => Map<String, dynamic>.from(x as Map)))
+            : const [],
       );
 }
 
+/// ============================================================================
+/// 👤 MODEL DATA PROFIL PENGGUNA ([UserProfile])
+/// ============================================================================
+/// Menyimpan identitas pengguna (Pasien atau Psikolog/Teman Sebaya), nomor HP,
+/// foto avatar, tanggal bergabung, serta rincian lisensi dan spesialisasi.
 class UserProfile {
   String name;
   String email;
@@ -107,7 +133,7 @@ class UserProfile {
   Uint8List? avatarBytes;
   File? avatarFile;
   final String memberSince;
-  String role; // 'patient' or 'psychologist'
+  String role; // 'patient' (Pasien) atau 'psychologist' (Teman/Psikolog)
   String specialization;
   String licenseNumber;
   String experienceYears;
@@ -131,8 +157,10 @@ class UserProfile {
   });
 }
 
-
-
+/// ============================================================================
+/// 💬 MODEL DATA KOMENTAR KOMUNITAS ([CommunityComment])
+/// ============================================================================
+/// Menyimpan satu balasan komentar pada postingan cerita komunitas.
 class CommunityComment {
   final String id;
   final String authorEmail;
@@ -150,6 +178,7 @@ class CommunityComment {
     required this.date,
   });
 
+  /// Konversi ke Map JSON
   Map<String, dynamic> toJson() => {
         'id': id,
         'author_email': authorEmail,
@@ -159,6 +188,7 @@ class CommunityComment {
         'date': date,
       };
 
+  /// Parsing dari Map JSON
   factory CommunityComment.fromJson(Map<String, dynamic> json) => CommunityComment(
         id: json['id'] as String? ?? '',
         authorEmail: json['author_email'] as String? ?? '',
@@ -169,6 +199,11 @@ class CommunityComment {
       );
 }
 
+/// ============================================================================
+/// 📝 MODEL DATA POSTINGAN CERITA KOMUNITAS ([CommunityPost])
+/// ============================================================================
+/// Menyimpan 1 postingan di feed komunitas, termasuk nama samaran (pseudonym),
+/// isi cerita, kategori tag, jumlah pelukan hangat (like), dan daftar komentar.
 class CommunityPost {
   final String id;
   final String authorEmail;
@@ -198,6 +233,7 @@ class CommunityPost {
     List<CommunityComment>? comments,
   }) : comments = comments ?? [];
 
+  /// Konversi ke JSON Map
   Map<String, dynamic> toJson() => {
         'id': id,
         'author_email': authorEmail,
@@ -213,6 +249,7 @@ class CommunityPost {
         'comments': comments.map((c) => c.toJson()).toList(),
       };
 
+  /// Parsing dari JSON Map
   factory CommunityPost.fromJson(Map<String, dynamic> json) => CommunityPost(
         id: json['id'] as String? ?? '',
         authorEmail: json['author_email'] as String? ?? '',
@@ -231,6 +268,11 @@ class CommunityPost {
       );
 }
 
+/// ============================================================================
+/// 🔔 MODEL DATA NOTIFIKASI APLIKASI ([AppNotification])
+/// ============================================================================
+/// Menyimpan pesan notifikasi masuk (misal: "Pelukan Hangat" atau "Komentar Baru")
+/// yang ditujukan untuk pemilik postingan cerita komunitas.
 class AppNotification {
   final String id;
   final String title;
@@ -240,7 +282,7 @@ class AppNotification {
   final String senderAvatar;
   final String recipientEmail;
   final String targetPostId;
-  final String type; // 'hug' (like) or 'comment' (support)
+  final String type; // 'hug' (like) atau 'comment' (komentar)
   bool isRead;
 
   AppNotification({
@@ -256,6 +298,7 @@ class AppNotification {
     this.isRead = false,
   });
 
+  /// Konversi ke JSON Map
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -269,6 +312,7 @@ class AppNotification {
         'is_read': isRead,
       };
 
+  /// Parsing dari JSON Map
   factory AppNotification.fromJson(Map<String, dynamic> json) => AppNotification(
         id: json['id'] as String? ?? '',
         title: json['title'] as String? ?? '',
@@ -282,5 +326,6 @@ class AppNotification {
         isRead: json['is_read'] as bool? ?? false,
       );
 }
+
 
 

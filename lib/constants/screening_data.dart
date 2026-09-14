@@ -1,51 +1,47 @@
- class ScreeningOption {
+class ScreeningOption {
   final String text;
   final int score;
 
-  const ScreeningOption({
-    required this.text,
-    required this.score,
-  });
+  const ScreeningOption({required this.text, required this.score});
 }
 
 class ScreeningData {
-  /// Pertanyaan psikometrik terverifikasi klinis berstandar internasional:
-  /// - PHQ-9 (Patient Health Questionnaire-9): Indikator Depresi & Mood (No. 1-9)
-  /// - GAD-7 (Generalized Anxiety Disorder-7): Indikator Kecemasan (No. 10-16)
-  /// - DASS-21 Stress Subscale: Indikator Stres & Beban Emosional (No. 17-20)
+  /// Instrumen Psikometri Berstandar Internasional DASS-21 (Depression Anxiety Stress Scales - 21 Items)
+  /// Terverifikasi secara klinis & diakui secara internasional oleh WHO & APA untuk mengukur Depresi, Kecemasan, dan Stres.
   static const List<String> questions = [
-    // --- PHQ-9 (Depresi & Suasana Hati) ---
-    'Kurang berminat atau tidak merasa senang saat melakukan aktivitas harian.',
-    'Merasa murung, sedih, tertekan, atau putus asa.',
-    'Sulit tidur, sering terbangun di malam hari, atau malah terlalu banyak tidur.',
-    'Merasa lelah, lemas, atau kurang bertenaga sepanjang hari.',
-    'Kurang nafsu makan atau justru makan secara berlebihan.',
-    'Merasa buruk tentang diri sendiri, merasa gagal, atau mengecewakan diri dan keluarga.',
-    'Sulit berkonsentrasi pada hal-hal seperti membaca, belajar, atau bekerja.',
-    'Bergerak atau berbicara sangat lambat, atau sebaliknya — terlalu gelisah hingga tak bisa tenang.',
-    'Merasa kewalahan hingga muncul pikiran bahwa Anda lebih baik tidak ada atau ingin menyakiti diri.',
+    // --- Subskala Stres & Beban Emosional ---
+    'Saya merasa sulit untuk menenangkan diri dan rileks.',
+    'Saya merasa cenderung bereaksi secara berlebihan terhadap suatu situasi.',
+    'Saya merasa menghabiskan banyak energi emosional saat cemas atau tertekan.',
+    'Saya merasa gelisah, mudah jengkel, dan emosi meledak-ledak.',
+    'Saya merasa sulit untuk santai dan menenangkan pikiran.',
+    'Saya merasa tidak sabar menghadapi penundaan atau gangguan kecil.',
+    'Saya merasa mudah tersinggung atau marah karena hal-hal sepele.',
 
-    // --- GAD-7 (Kecemasan & Kegelisahan) ---
-    'Merasa gugup, cemas, khawatir, atau sangat gelisah.',
-    'Merasa tidak mampu menghentikan atau mengendalikan rasa khawatir.',
-    'Merasa sangat khawatir tentang berbagai macam hal secara berlebihan.',
-    'Merasa sulit untuk santai, rileks, atau menenangkan pikiran.',
-    'Sangat gelisah hingga merasa sulit untuk duduk tenang.',
-    'Merasa mudah jengkel, marah, atau tersinggung pada hal-hal kecil.',
-    'Merasa takut seolah-olah sesuatu yang buruk atau berbahaya akan terjadi.',
+    // --- Subskala Kecemasan & Sensori Fisik ---
+    'Saya merasa mulut saya kering tanpa alasan fisik.',
+    'Saya mengalami kesulitan bernapas (napas cepat atau sesak saat cemas).',
+    'Saya merasa gemetaran (misalnya pada tangan atau anggota tubuh).',
+    'Saya merasa khawatir berlebihan saat berada di situasi panik.',
+    'Saya merasa lemas seperti mau pingsan saat tertekan.',
+    'Saya merasakan detak jantung kencang/berdebar tanpa aktivitas fisik.',
+    'Saya merasa takut seolah-olah sesuatu yang buruk akan terjadi tanpa alasan jelas.',
 
-    // --- DASS-21 (Tingkat Stres & Beban Emosional) ---
-    'Merasa emosi mudah meledak atau menghabiskan banyak energi emosional saat tertekan.',
-    'Merasa kewalahan menghadapi beban pikiran dan tuntutan aktivitas sehari-hari.',
-    'Merasa sulit untuk tenang kembali setelah mengalami peristiwa yang menyebalkan.',
-    'Merasa enggan untuk berinteraksi sosial atau menarik diri dari lingkungan sekitar.',
+    // --- Subskala Depresi & Suasana Hati ---
+    'Saya sama sekali tidak dapat merasakan perasaan positif atau gembira.',
+    'Saya merasa sulit dan berat untuk memulai melakukan aktivitas harian.',
+    'Saya merasa tidak ada hal yang dapat diharapkan di masa depan.',
+    'Saya merasa sedih, murung, dan tertekan secara mendalam.',
+    'Saya merasa kehilangan minat dan antusiasme pada hal apa pun.',
+    'Saya merasa bahwa saya tidak berharga sebagai seorang manusia.',
+    'Saya merasa bahwa hidup ini terasa hampa dan tidak berarti lagi.',
   ];
 
-  /// Opsi jawaban sesuai standar instrumen klinis PHQ-9 & GAD-7
+  /// Opsi jawaban sesuai standar instrumen psikometri klinis DASS-21
   static const List<ScreeningOption> options = [
-    ScreeningOption(text: 'Tidak pernah sama sekali', score: 0),
-    ScreeningOption(text: 'Beberapa hari', score: 1),
-    ScreeningOption(text: 'Lebih dari separuh hari', score: 2),
-    ScreeningOption(text: 'Hampir setiap hari', score: 3),
+    ScreeningOption(text: 'Tidak Pernah', score: 0),
+    ScreeningOption(text: 'Kadang-kadang', score: 1),
+    ScreeningOption(text: 'Sering', score: 2),
+    ScreeningOption(text: 'Sangat Sering', score: 3),
   ];
 }

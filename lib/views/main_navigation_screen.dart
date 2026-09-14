@@ -46,7 +46,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _onTabItemSelected(int index) {
-    if (_selectedIndex == index) return;
+    if (_selectedIndex== index) return;
 
     final int distance = (_selectedIndex - index).abs();
 

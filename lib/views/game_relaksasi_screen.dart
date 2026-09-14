@@ -8,6 +8,17 @@ import 'package:mindcare/widgets/game/affirmation_card_widget.dart';
 import 'package:mindcare/widgets/game/bubble_calm_widget.dart';
 import 'package:mindcare/widgets/game/ripples_of_peace_widget.dart';
 
+/// ============================================================================
+/// 🎮 LAYAR MINI GAME RELAKSASI & TERAPI INTERAKTIF ([GameRelaksasiScreen])
+/// ============================================================================
+/// Layar ini menyediakan 3 jenis modul/fitur intervensi penenangan diri (*calming tools*):
+/// 1. **Bubble Calm**: Permainan meletuskan gelembung beban emosi ('Khawatir', 'Stres', 'Overthinking') 
+///    yang secara instan memunculkan pesan afirmasi positif.
+/// 2. **Ripples of Peace**: Simulasi riak air yang menenangkan dengan sentuhan interaktif dan efek audio alam.
+/// 3. **Kartu Afirmasi**: Koleksi kartu motivasi & mindfulness harian yang dapat diusap/dilihat.
+///
+/// Selain itu, layar ini juga dilengkapi dengan pemutar musik latar belakang relaksasi (*ambient sound*)
+/// yang dapat diaktifkan atau dimatikan oleh pengguna melalui tombol pada header/AppBar.
 class GameRelaksasiScreen extends StatefulWidget {
   const GameRelaksasiScreen({super.key});
 
@@ -17,31 +28,56 @@ class GameRelaksasiScreen extends StatefulWidget {
 
 class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     with SingleTickerProviderStateMixin {
+  // ==========================================================================
+  // 🔊 AUDIO PLAYER STATE
+  // ==========================================================================
+
+  /// Pemutar audio instrumen relaksasi latar belakang
   final AudioPlayer _audioPlayer = AudioPlayer();
+
+  /// Status apakah musik relaksasi sedang diputar atau dimatikan
   bool _isAudioPlaying = false;
 
-  // Selected Game Tab: 0 = Bubble Calm, 1 = Ripples Water, 2 = Kartu Afirmasi
+  // ==========================================================================
+  // 🔀 NAVIGATION STATE
+  // ==========================================================================
+
+  /// Tab game relaksasi yang sedang aktif:
+  /// - `0`: Bubble Calm (Gelembung Afirmasi)
+  /// - `1`: Ripples Water (Simulasi Riak Air)
+  /// - `2`: Kartu Afirmasi (Koleksi Dek Afirmasi)
   int _selectedTab = 0;
 
-  // --- GAME 1: BUBBLE CALM STATE ---
-  int _peaceScore = 0;
-  int _poppedCount = 0;
-  String _currentAffirmation =
-      'Sentuh gelembung cemas di bawah untuk meletuskannya & melepaskan beban! ';
+  // ==========================================================================
+  // 🫧 GAME 1: BUBBLE CALM STATE & DATA
+  // ==========================================================================
 
+  /// Total skor kedamaian yang diraih pengguna dengan meletuskan gelembung
+  int _peaceScore = 0;
+
+  /// Jumlah total gelembung yang telah dilepaskan/diletuskan
+  int _poppedCount = 0;
+
+  /// Pesan afirmasi positif yang sedang ditampilkan di bagian atas arena Bubble Calm
+  String _currentAffirmation =
+      'Sentuh gelembung cemas di bawah untuk meletuskannya & melepaskan beban! ✨';
+
+  /// Daftar pasangan kata emosi negatif dan kata afirmasi penawarnya
   final List<Map<String, String>> _wordPairs = const [
-    {'word': 'Khawatir', 'affirm': 'Saya aman dan hidup di saat ini '},
-    {'word': 'Beban', 'affirm': 'Saya melepaskan apa yang tidak bisa saya kontrol '},
-    {'word': 'Stres', 'affirm': 'Setiap napas membawa kedamaian ke jiwa saya '},
-    {'word': 'Overthinking', 'affirm': 'Pikiran saya tenang dan jernih seperti air danau '},
-    {'word': 'Lelah', 'affirm': 'Saya mengizinkan tubuh dan pikiran saya beristirahat '},
-    {'word': 'Cemas', 'affirm': 'Saya lebih kuat dari rasa cemas yang saya rasakan '},
-    {'word': 'Ragu', 'affirm': 'Saya percaya pada potensi dan perjalanan hidup saya '},
-    {'word': 'Takut', 'affirm': 'Keberanian tumbuh di dalam hati saya setiap hari '},
+    {'word': 'Khawatir', 'affirm': 'Saya aman dan hidup di saat ini 🌿'},
+    {'word': 'Beban', 'affirm': 'Saya melepaskan apa yang tidak bisa saya kontrol 🍃'},
+    {'word': 'Stres', 'affirm': 'Setiap napas membawa kedamaian ke jiwa saya 🌊'},
+    {'word': 'Overthinking', 'affirm': 'Pikiran saya tenang dan jernih seperti air danau 🧘'},
+    {'word': 'Lelah', 'affirm': 'Saya mengizinkan tubuh dan pikiran saya beristirahat 😴'},
+    {'word': 'Cemas', 'affirm': 'Saya lebih kuat dari rasa cemas yang saya rasakan 💪'},
+    {'word': 'Ragu', 'affirm': 'Saya percaya pada potensi dan perjalanan hidup saya 🌟'},
+    {'word': 'Takut', 'affirm': 'Keberanian tumbuh di dalam hati saya setiap hari ❤️'},
   ];
 
+  /// List objek data gelembung yang sedang aktif di layar
   late List<BubbleData> _bubbles;
 
+  /// Variasi warna pastel lembut untuk gelembung emosi
   final List<Color> _bubbleColors = const [
     Color(0xFFFFB7B2),
     Color(0xFFFFDAC1),
@@ -51,6 +87,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     Color(0xFFF6EACB),
   ];
 
+  /// Koordinat posisi gelembung di dalam kontainer arena permainan
   final List<Alignment> _alignments = const [
     Alignment(-0.75, -0.65),
     Alignment(0.70, -0.70),
@@ -60,7 +97,11 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     Alignment(0.0, 0.65),
   ];
 
-  // --- GAME 3: KARTU AFIRMASI STATE ---
+  // ==========================================================================
+  // 🃏 GAME 3: KARTU AFIRMASI DATA
+  // ==========================================================================
+
+  /// Koleksi 20 Kartu Afirmasi Harian untuk mendukung kesehatan mental pengguna
   final List<Map<String, String>> _affirmationCards = const [
     {
       'title': 'Ketenangan Hati',
@@ -184,38 +225,41 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     },
   ];
 
+  // ==========================================================================
+  // 🔄 LIFECYCLE METHODS
+  // ==========================================================================
+
   @override
   void initState() {
     super.initState();
+    // Membangun daftar gelembung awal
     _initBubbles();
+    // Mengonfigurasi pemutar audio latar belakang
     _initAudio();
-  }
-
-  void _initBubbles() {
-    _bubbles = List.generate(6, (index) {
-      final pair = _wordPairs[index % _wordPairs.length];
-      return BubbleData(
-        word: pair['word']!,
-        affirmation: pair['affirm']!,
-        color: _bubbleColors[index % _bubbleColors.length],
-        alignment: _alignments[index % _alignments.length],
-      );
-    });
-  }
-
-  Future<void> _initAudio() async {
-    try {
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      await _audioPlayer.setVolume(0.5);
-    } catch (_) {}
   }
 
   @override
   void dispose() {
+    // Membersihkan resources pemutar audio agar tidak menyebabkan memory leak
     _audioPlayer.dispose();
     super.dispose();
   }
 
+  // ==========================================================================
+  // 🎵 AUDIO HANDLING METHODS
+  // ==========================================================================
+
+  /// Mengonfigurasi pemutar audio agar memutar musik dalam mode berulang (looping)
+  Future<void> _initAudio() async {
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.setVolume(0.5);
+    } catch (_) {
+      // Mengabaikan kesalahan jika audio player tidak didukung pada platform tertentu
+    }
+  }
+
+  /// Mengganti status audio pemutar musik relaksasi (Play / Pause)
   void _toggleAudio() async {
     setState(() {
       _isAudioPlaying = !_isAudioPlaying;
@@ -234,7 +278,26 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     }
   }
 
-  // --- BUBBLE GAME LOGIC ---
+  // ==========================================================================
+  // 🫧 BUBBLE GAME LOGIC METHODS
+  // ==========================================================================
+
+  /// Inisialisasi awal 6 objek gelembung berdasarkan daftar kata `_wordPairs`
+  void _initBubbles() {
+    _bubbles = List.generate(6, (index) {
+      final pair = _wordPairs[index % _wordPairs.length];
+      return BubbleData(
+        word: pair['word']!,
+        affirmation: pair['affirm']!,
+        color: _bubbleColors[index % _bubbleColors.length],
+        alignment: _alignments[index % _alignments.length],
+      );
+    });
+  }
+
+  /// Menangani aksi saat pengguna menyentuh/meletuskan gelembung pada [index] tertentu.
+  /// Meletuskan gelembung akan menambah skor kedamaian, mengubah pesan afirmasi,
+  /// dan membuat gelembung baru secara acak setelah jeda animasi 1.8 detik.
   void _popBubble(int index) {
     if (_bubbles[index].isPopped) return;
 
@@ -245,6 +308,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
       _currentAffirmation = _bubbles[index].affirmation;
     });
 
+    // Menghasilkan gelembung baru secara otomatis setelah jeda waktu tertentu
     Timer(const Duration(milliseconds: 1800), () {
       if (!mounted) return;
       setState(() {
@@ -259,6 +323,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     });
   }
 
+  /// Mengulang kembali skor kedamaian dan menyegarkan ulang seluruh gelembung permainan
   void _resetBubbleGame() {
     setState(() {
       _peaceScore = 0;
@@ -268,6 +333,10 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
       _initBubbles();
     });
   }
+
+  // ==========================================================================
+  // 🎨 BUILD METHOD (UI MAIN LAYOUT)
+  // ==========================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -289,6 +358,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
           ),
         ),
         actions: [
+          // Tombol pemutar audio latar belakang (musik relaksasi)
           IconButton(
             tooltip: _isAudioPlaying ? 'Matikan Musik Ambient' : 'Putar Musik Ambient',
             icon: Icon(
@@ -303,12 +373,12 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Top Banner & Game Selector
+            // Header Banner & Tab Selector Game Relaksasi
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
               child: Column(
                 children: [
-                  // Subtitle Callout
+                  // Banner Petunjuk Singkat Penggunaan Game Relaksasi
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
@@ -338,7 +408,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
                   ),
                   const SizedBox(height: 14),
 
-                  // Tab Buttons (Bubble Calm, Ripples Water, Kartu Afirmasi)
+                  // Navigasi Tab Pengalih Modul Game (Bubble Calm, Ripples Water, Afirmasi)
                   Row(
                     children: [
                       Expanded(
@@ -371,7 +441,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
             ),
             const SizedBox(height: 8),
 
-            // Active Game Content View
+            // Tampilan Konten Game Terpilih
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -385,6 +455,11 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     );
   }
 
+  // ==========================================================================
+  // 🧩 UI SUB-WIDGET HELPER METHODS
+  // ==========================================================================
+
+  /// Membangun tombol tab navigasi dengan penanda aktif/non-aktif
   Widget _buildTabButton({
     required int index,
     required String label,
@@ -431,6 +506,7 @@ class _GameRelaksasiScreenState extends State<GameRelaksasiScreen>
     );
   }
 
+  /// Memilih dan menampilkan widget tampilan modul game sesuai tab terpilih ([_selectedTab])
   Widget _buildSelectedGameView() {
     switch (_selectedTab) {
       case 0:

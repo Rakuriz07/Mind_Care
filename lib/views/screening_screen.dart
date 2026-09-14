@@ -4,6 +4,13 @@ import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/views/kuesioner_screening_screen.dart';
 import 'package:mindcare/views/profile_screen.dart';
 
+/// ============================================================================
+/// 📋 LAYAR UTAMA SKRINING PSIKOMETRI ([ScreeningScreen])
+/// ============================================================================
+/// Menampilkan halaman pengantar tes DASS-21 (Depression Anxiety Stress Scale 21 Items):
+/// 1. Penjelasan standar klinis WHO / APA (PHQ-9 & GAD-7 / DASS-21).
+/// 2. Informasi kerahasiaan data hasil tes kesehatan mental.
+/// 3. Tombol "Mulai Skrining Mandiri" untuk membuka kuesioner interaktif.
 class ScreeningScreen extends StatefulWidget {
   const ScreeningScreen({super.key});
 
@@ -12,6 +19,7 @@ class ScreeningScreen extends StatefulWidget {
 }
 
 class _ScreeningScreenState extends State<ScreeningScreen> {
+  /// Menampilkan modal BottomSheet penjelas instrumen klinis psikometri
   void _showInfoModal() {
     showModalBottomSheet(
       context: context,

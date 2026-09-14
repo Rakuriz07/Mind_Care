@@ -7,6 +7,35 @@ import 'package:mindcare/models/app_models.dart';
 import 'package:mindcare/services/app_state_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// ============================================================================
+/// COMMUNITY SCREEN (Layar Komunitas & Notifikasi Real-Time)
+/// ----------------------------------------------------------------------------
+/// 📖 KAMUS KONSEP & KATA KUNCI FLUTTER UI UNTUK BELAJAR:
+///
+/// 1. `BuildContext context`:
+///    Alamat lokasi (posisi) sebuah Widget di dalam pohon hierarki tampilan (*Widget Tree*).
+///    Digunakan untuk membuka halaman baru (`Navigator.push`), dialog, atau tema warna.
+///
+/// 2. `StatefulWidget` & `State`:
+///    Widget yang memiliki status/data yang dapat berubah secara dinamis selama aplikasi berjalan
+///    (contoh: teks pencarian, daftar postingan, status login).
+///
+/// 3. `setState(() {})`:
+///    Perintah khusus Flutter untuk memberitahu bahwa data/state di dalam widget telah berubah.
+///    Flutter akan secara otomatis menggambar ulang (*rebuild*) tampilan UI agar sesuai dengan data baru.
+///
+/// 4. `StreamBuilder<T>`:
+///    Widget ajaib Flutter yang mendengarkan aliran data `Stream` (seperti Firebase Real-time).
+///    Widget ini secara otomatis menggambar ulang UI setiap kali ada data baru yang masuk dari `Stream`.
+///
+/// 5. `builder: (context, snapshot)`:
+///    Fungsi pembuat tampilan yang menerima `context` dan `snapshot` (objek yang menampung
+///    status data `Stream`: apakah sedang loading, error, atau sudah berisi daftar postingan).
+///
+/// 6. `ListenableBuilder`:
+///    Widget yang mendengarkan objek `ChangeNotifier` (seperti `AppStateService`)
+///    dan otomatis menggambar ulang UI saat `notifyListeners()` dipanggil.
+/// ============================================================================
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
 
@@ -20,28 +49,23 @@ class _CommunityScreenState extends State<CommunityScreen> {
   final List<Map<String, String>> _pseudonyms = [
     {
       'name': 'PejuangTenang',
-      'avatar':
-          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+      'avatar': 'assets/images/senang.png',
     },
     {
       'name': 'SahabatJiwa',
-      'avatar':
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+      'avatar': 'assets/icons/logo_mindcare.png',
     },
     {
       'name': 'BintangMalam',
-      'avatar':
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+      'avatar': 'assets/images/cemas.png',
     },
     {
       'name': 'LenteraHati',
-      'avatar':
-          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
+      'avatar': 'assets/icons/app_icon.png',
     },
     {
       'name': 'MentariPagi',
-      'avatar':
-          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80',
+      'avatar': 'assets/images/sedih.png',
     },
   ];
 
@@ -268,7 +292,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 padding: const EdgeInsets.only(right: 8.0),
                                 child: ChoiceChip(
                                   avatar: CircleAvatar(
-                                    backgroundImage: NetworkImage(p['avatar']!),
+                                    backgroundImage: p['avatar']!.startsWith('assets/')
+                                        ? AssetImage(p['avatar']!) as ImageProvider
+                                        : NetworkImage(p['avatar']!),
                                   ),
                                   label: Text(p['name']!),
                                   selected: isSelected,
@@ -1010,7 +1036,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                'Diskusi Sebaya (${filteredPosts.length})',
+                                'Diskusi Teman (${filteredPosts.length})',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.plusJakartaSans(
@@ -1096,7 +1122,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   ),
                 ),
                 Text(
-                  'Ruang Aman Dukungan Sebaya',
+                  'Ruang Aman Dukungan Teman',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
@@ -1190,10 +1216,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return ListenableBuilder(
-          listenable: AppStateService.instance,
-          builder: (context, _) {
-            final notifs = AppStateService.instance.notifications;
+        return StreamBuilder<List<AppNotification>>(
+          stream: AppStateService.instance.realTimeNotificationsStream,
+          builder: (context, snapshot) {
+            final notifs = snapshot.data ?? AppStateService.instance.notifications;
             return Container(
               height: MediaQuery.of(context).size.height * 0.75,
               decoration: const BoxDecoration(

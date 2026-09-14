@@ -7,9 +7,22 @@ import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/meditasi_tidur_screen.dart';
 import 'package:mindcare/views/tips_pola_makan_screen.dart';
 
+/// ============================================================================
+/// 🎉 LAYAR RANGKUMAN HASIL SKRINING ([HasilSkriningScreen])
+/// ============================================================================
+/// Layar ini muncul sesaat setelah pengguna menyelesaikan kuesioner DASS-21:
+/// 1. Tampilan Hasil Diagnosis & Maskot Emoticon Mood Sesuai Skor (0 - 100).
+/// 2. Gauge Lingkaran Skor Kesejahteraan Emosional.
+/// 3. Rekomendasi Fitur Terpersonalisasi (Jurnal, Meditasi, Nutrisi, atau Mini Game).
+/// 4. Akses Cepat Navigasi ke Halaman Riwayat (`HistoryScreen`) atau Kembali ke Beranda.
 class HasilSkriningScreen extends StatelessWidget {
-  final int score; // 0 - 100 scale (or converted from raw points)
+  /// Skor akhir hasil evaluasi (Rentang 0 - 100)
+  final int score;
+
+  /// Total pertanyaan kuesioner
   final int totalQuestions;
+
+  /// Jumlah pertanyaan yang telah dijawab
   final int answeredCount;
 
   const HasilSkriningScreen({
@@ -21,7 +34,9 @@ class HasilSkriningScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dynamic mood data mapping based on score
+    // -------------------------------------------------------------------------
+    // 📊 PEMETAAN DATA MOOD & DIAGNOSIS DINAMIS BERDASARKAN RENTANG SKOR
+    // -------------------------------------------------------------------------
     final String headline;
     final String description;
     final String moodImageUrl;
@@ -30,7 +45,7 @@ class HasilSkriningScreen extends StatelessWidget {
     final List<Map<String, dynamic>> recommendations;
 
     if (score >= 75) {
-      // Condition: Healthy / Senang
+      // 1. Kondisi: Sangat Baik / Senang (Skor >= 75)
       headline = 'Hasil Skrining Kamu: Sangat Baik';
       description =
           'Berdasarkan jawabanmu, kondisi mentalmu saat ini berada dalam rentang yang sehat. Kamu merasa tenang dan mampu mengelola stres dengan baik.';
@@ -64,7 +79,7 @@ class HasilSkriningScreen extends StatelessWidget {
         },
       ];
     } else if (score >= 55) {
-      // Condition: Mild Stress / Cemas
+      // 2. Kondisi: Stres Ringan / Cemas (Skor 55 - 74)
       headline = 'Hasil Skrining Kamu: Perlu Relaksasi';
       description =
           'Kamu mungkin sedang mengalami sedikit beban pikiran atau kecemasan akhir-akhir ini. Luangkan waktu untuk mengatur pernapasan dan istirahat.';
@@ -100,7 +115,7 @@ class HasilSkriningScreen extends StatelessWidget {
         },
       ];
     } else if (score >= 35) {
-      // Condition: Sadness / Sedih
+      // 3. Kondisi: Sedang Lelah / Sedih (Skor 35 - 54)
       headline = 'Hasil Skrining Kamu: Sedang Lelah';
       description =
           'Kamu sedang berada di fase di mana suasana hati merasa sedih dan emosi cukup lelah. Jangan ragu beristirahat dan cerita ke teman terdekat.';
@@ -134,7 +149,7 @@ class HasilSkriningScreen extends StatelessWidget {
         },
       ];
     } else {
-      // Condition: Severe Stress / STRESS
+      // 4. Kondisi: Stres Berat / Perlu Perhatian (Skor < 35)
       headline = 'Hasil Skrining Kamu: Perlu Perhatian Khusus';
       description =
           'Kondisi mentalmu menunjukkan tingkat stres yang cukup tinggi. Disarankan untuk beristirahat dan melatih relaksasi pernapasan.';
@@ -163,10 +178,10 @@ class HasilSkriningScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Top AppBar
+            // 1. Top Bar Navigation
             _buildAppBar(context),
 
-            // 2. Main Scrollable Content
+            // 2. Konten Utama Hasil Skrining
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -175,7 +190,7 @@ class HasilSkriningScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Result Hero (Emoticon + Headline + Description)
+                    // Bagian Hero: Emoticon Maskot + Judul Diagnosis + Deskripsi
                     _buildResultHero(
                       moodImageUrl,
                       headline,
@@ -184,15 +199,15 @@ class HasilSkriningScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Glass Score Gauge Card
+                    // Card Gauge Skor Kesejahteraan Emosional
                     _buildScoreCard(score, scoreColor),
                     const SizedBox(height: 24),
 
-                    // Bento Recommendations
+                    // Rekomendasi Fitur Terpersonalisasi
                     _buildRecommendationsSection(recommendations),
                     const SizedBox(height: 28),
 
-                    // Action Buttons
+                    // Tombol Aksi Navigasi (Lihat Detail di History & Kembali ke Beranda)
                     _buildActionButtons(context),
                     const SizedBox(height: 20),
                   ],
@@ -255,6 +270,7 @@ class HasilSkriningScreen extends StatelessWidget {
     );
   }
 
+  /// Helper untuk memuat gambar karakter emosi dari asset lokal maupun URL network
   Widget _buildResultImage(String path) {
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return Image.network(
@@ -278,7 +294,10 @@ class HasilSkriningScreen extends StatelessWidget {
     );
   }
 
-  // --- Result Hero Section ---
+  /// --------------------------------------------------------------------------
+  /// 🌟 WIDGET HERO MASKOT & HASIL DIAGNOSIS (_buildResultHero)
+  /// --------------------------------------------------------------------------
+  /// Menampilkan efek lingkaran pendaran cahaya (*glow effect*) di belakang karakter maskot emosi.
   Widget _buildResultHero(
     String imageUrl,
     String headline,
@@ -287,7 +306,7 @@ class HasilSkriningScreen extends StatelessWidget {
   ) {
     return Column(
       children: [
-        // Mascot / Mood Emoticon with Glow
+        // Maskot Emoticon dengan Cahaya Pendaran (Glow Container)
         Stack(
           alignment: Alignment.center,
           children: [
@@ -315,7 +334,7 @@ class HasilSkriningScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Headline
+        // Judul Headline Diagnosis
         Text(
           headline,
           textAlign: TextAlign.center,
@@ -327,7 +346,7 @@ class HasilSkriningScreen extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Description
+        // Deskripsi Penjelasan Kondisi Mental
         Text(
           description,
           textAlign: TextAlign.center,
@@ -341,7 +360,10 @@ class HasilSkriningScreen extends StatelessWidget {
     );
   }
 
-  // --- Score Card ---
+  /// --------------------------------------------------------------------------
+  /// 🎯 WIDGET KARTU SKOR KESEJAHTERAAN EMOSIONAL (_buildScoreCard)
+  /// --------------------------------------------------------------------------
+  /// Menampilkan indikator lingkaran (*CircularProgressIndicator*) yang menunjukkan skor 0 - 100.
   Widget _buildScoreCard(int score, Color scoreColor) {
     return Container(
       padding: const EdgeInsets.all(20.0),
@@ -369,7 +391,7 @@ class HasilSkriningScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Circular Progress Indicator / Score Gauge
+          // Indicator Lingkaran Skor
           SizedBox(
             width: 100,
             height: 100,
@@ -412,7 +434,7 @@ class HasilSkriningScreen extends StatelessWidget {
           ),
           const SizedBox(width: 18),
 
-          // Score Summary Text
+          // Teks Penjelasan Skor Kesejahteraan
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,7 +464,10 @@ class HasilSkriningScreen extends StatelessWidget {
     );
   }
 
-  // --- Bento Recommendations Section ---
+  /// --------------------------------------------------------------------------
+  /// 💡 WIDGET SEKSI REKOMENDASI FITUR (_buildRecommendationsSection)
+  /// --------------------------------------------------------------------------
+  /// Menampilkan daftar kartu rekomendasi tindakan penanganan emosional yang disesuaikan.
   Widget _buildRecommendationsSection(
     List<Map<String, dynamic>> recommendations,
   ) {
@@ -537,11 +562,16 @@ class HasilSkriningScreen extends StatelessWidget {
     );
   }
 
-  // --- Action Buttons ---
+  /// --------------------------------------------------------------------------
+  /// 🔘 WIDGET TOMBOL AKSI NAVIGASI (_buildActionButtons)
+  /// --------------------------------------------------------------------------
+  /// Menyediakan 2 tombol utama:
+  /// 1. 'Lihat Detail di History': Mengarahkan pengguna langsung ke `HistoryScreen`.
+  /// 2. 'Kembali ke Beranda': Mengarahkan kembali ke halaman beranda utama.
   Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
-        // Lihat Detail di History
+        // Tombol Lihat Detail di History
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -572,7 +602,7 @@ class HasilSkriningScreen extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Kembali ke Beranda
+        // Tombol Kembali ke Beranda Utama
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(

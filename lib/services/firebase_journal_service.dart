@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/models/app_models.dart';
@@ -17,22 +18,29 @@ class FirebaseJournalService {
 
   /// Simpan catatan jurnal emosi harian ke Cloud Firestore (Private per User)
   Future<void> saveJournal(JournalEntry entry) async {
-    final cleanEmail = entry.userEmail.toLowerCase().trim();
-    final docRef =
-        entry.id.isNotEmpty ? _journalsRef.doc(entry.id) : _journalsRef.doc();
+    try {
+      final cleanEmail = entry.userEmail.toLowerCase().trim();
+      final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final docRef =
+          entry.id.isNotEmpty ? _journalsRef.doc(entry.id) : _journalsRef.doc();
 
-    await docRef.set({
-      'id': docRef.id,
-      'user_email': cleanEmail,
-      'title': entry.title,
-      'date': entry.date,
-      'preview': entry.preview,
-      'mood': entry.mood,
-      'mood_color': entry.moodColor.toARGB32(),
-      'mood_bg': entry.moodBg.toARGB32(),
-      'tags': entry.tags,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+      await docRef.set({
+        'id': docRef.id,
+        'userId': currentUid,
+        'user_id': currentUid,
+        'user_email': cleanEmail,
+        'title': entry.title,
+        'date': entry.date,
+        'preview': entry.preview,
+        'mood': entry.mood,
+        'mood_color': entry.moodColor.toARGB32(),
+        'mood_bg': entry.moodBg.toARGB32(),
+        'tags': entry.tags,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Error saving journal to Firebase: $e');
+    }
   }
 
   /// Ambil seluruh riwayat jurnal emosi user dari Cloud Firestore

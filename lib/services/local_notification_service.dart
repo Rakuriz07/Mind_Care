@@ -6,21 +6,47 @@ import 'package:mindcare/views/screening_screen.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+/// ============================================================================
+/// LOCAL NOTIFICATION SERVICE (Layanan Notifikasi & Alarm Lokal)
+/// ----------------------------------------------------------------------------
+/// KEGUNAAN & FUNGSI:
+/// Layanan ini mengatur notifikasi lokal di perangkat Android & iOS tanpa memerlukan koneksi internet.
+///
+/// FITUR UTAMA:
+/// 1. Inisialisasi Izin & Channel Notifikasi Android/iOS (`init`).
+/// 2. Menampilkan Notifikasi Skrining Harian Langsung (`showDailyScreeningNotification`).
+/// 3. Menjadwalkan Pengingat Skrining Pagi Berulang Setiap Hari (`scheduleDailyMorningNotification`).
+/// 4. Menjadwalkan Alarm Bangun Pagi Presisi Tinggi (`scheduleWakeupAlarm`).
+/// 5. Membatalkan Alarm Bangun Pagi (`cancelWakeupAlarm`).
+/// 6. Menampilkan Spanduk Notifikasi Bergaya iOS/Android di Dalam Aplikasi (`showSystemStyleNotificationBanner`).
+/// ============================================================================
 class LocalNotificationService {
+  // Singleton Pattern: Memastikan hanya ada 1 instance layanan di seluruh aplikasi.
   static final LocalNotificationService _instance = LocalNotificationService._internal();
   static LocalNotificationService get instance => _instance;
 
   LocalNotificationService._internal();
 
+  // Plugin bawaan flutter_local_notifications untuk berkomunikasi dengan sistem Android & iOS
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
 
+  /// ==========================================================================
+  /// 1. INISIALISASI LAYANAN NOTIFIKASI
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Mengkonfigurasi ikon aplikasi, waktu Zona (Timezone), serta meminta
+  /// izin (*permission*) tampil notifikasi pada Android 13+ & iOS.
+  /// ==========================================================================
   Future<void> init() async {
     if (_isInitialized) return;
 
+    // Inisialisasi data timezone lokal perangkat
     tz.initializeTimeZones();
 
+    // Ikon yang dipakai pada sistem Android (menggunakan ic_launcher bawaan)
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    
+    // Izin notifikasi untuk sistem iOS
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -36,10 +62,11 @@ class LocalNotificationService {
       await _notificationsPlugin.initialize(
         initSettings,
         onDidReceiveNotificationResponse: (details) {
-          // Handle notification click
+          // Callback ketika pengguna menekan notifikasi yang muncul di HP
         },
       );
 
+      // Meminta izin khusus pemberitahuan di Android 13+ (POST_NOTIFICATIONS)
       final androidPlatform = _notificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       if (androidPlatform != null) {
@@ -50,6 +77,11 @@ class LocalNotificationService {
     _isInitialized = true;
   }
 
+  /// ==========================================================================
+  /// 2. MENAMPILKAN NOTIFIKASI LANGSUNG (INSTANT)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Menampilkan notifikasi saat itu juga di status bar HP.
+  /// ==========================================================================
   Future<void> showDailyScreeningNotification() async {
     await init();
 
@@ -84,9 +116,15 @@ class LocalNotificationService {
     } catch (_) {}
   }
 
+  /// ==========================================================================
+  /// 3. MENJADWALKAN PENGINGAT SKRINING PAGI HARIAN
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Menjadwalkan pengingat skrining otomatis setiap jam 07:00 pagi.
+  /// ==========================================================================
   Future<void> scheduleDailyMorningNotification({int hour = 7, int minute = 0}) async {
     await init();
 
+    // Menghitung jam berikutnya untuk eksekusi jadwal pengingat
     tz.TZDateTime nextInstanceOfMorningTime(int hour, int minute) {
       final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
       tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
@@ -125,11 +163,17 @@ class LocalNotificationService {
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.inexact,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
+        matchDateTimeComponents: DateTimeComponents.time, // Berulang setiap hari pada jam yang sama
       );
     } catch (_) {}
   }
 
+  /// ==========================================================================
+  /// 4. MENJADWALKAN ALARM BANGUN PAGI (EXACT ALARM)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Menjadwalkan alarm tepat waktu sesuai jam yang diset oleh pengguna.
+  /// Menggunakan mode `exactAllowWhileIdle` agar tetap berbunyi saat HP di posisi sleep.
+  /// ==========================================================================
   Future<void> scheduleWakeupAlarm({
     required int hour,
     required int minute,
@@ -155,7 +199,7 @@ class LocalNotificationService {
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
-      audioAttributesUsage: AudioAttributesUsage.alarm,
+      audioAttributesUsage: AudioAttributesUsage.alarm, // Menggunakan kategori suara Alarm sistem
       icon: '@mipmap/ic_launcher',
     );
 
@@ -178,7 +222,7 @@ class LocalNotificationService {
         body,
         nextInstanceOfTime(hour, minute),
         notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Presisi tinggi
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
@@ -200,6 +244,11 @@ class LocalNotificationService {
     }
   }
 
+  /// ==========================================================================
+  /// 5. MEMBATALKAN ALARM BANGUN PAGI
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Menghapus jadwal alarm bangun pagi dari sistem saat tombol diklik OFF.
+  /// ==========================================================================
   Future<void> cancelWakeupAlarm() async {
     await init();
     try {
@@ -207,6 +256,11 @@ class LocalNotificationService {
     } catch (_) {}
   }
 
+  /// ==========================================================================
+  /// 6. SPANDUK NOTIFIKASI DALAM APLIKASI (OVERLAY BANNER)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Menampilkan banner notifikasi meluncur dari atas layar mirip iOS/Android.
+  /// ==========================================================================
   void showSystemStyleNotificationBanner(
     BuildContext context, {
     VoidCallback? onTapScreening,
@@ -243,6 +297,11 @@ class LocalNotificationService {
   }
 }
 
+/// ============================================================================
+/// WIDGET SPANDUK NOTIFIKASI MELUNCUR (_SystemPushNotificationBanner)
+/// ----------------------------------------------------------------------------
+/// Custom Stateful Widget animasi slide-down untuk memberikan efek notifikasi push bawaan.
+/// ============================================================================
 class _SystemPushNotificationBanner extends StatefulWidget {
   final String title;
   final String body;
@@ -285,6 +344,7 @@ class _SystemPushNotificationBannerState extends State<_SystemPushNotificationBa
 
     _controller.forward();
 
+    // Hilang otomatis setelah 4 detik
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted) {
         _dismiss();

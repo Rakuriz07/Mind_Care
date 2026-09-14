@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/models/app_models.dart';
@@ -17,22 +18,31 @@ class FirebaseScreeningService {
 
   /// Simpan hasil skrining kesehatan mental ke Cloud Firestore
   Future<void> saveScreeningRecord(ScreeningRecord record) async {
-    final cleanEmail = record.userEmail.toLowerCase().trim();
-    final docRef =
-        record.id.isNotEmpty ? _screeningsRef.doc(record.id) : _screeningsRef.doc();
+    try {
+      final cleanEmail = record.userEmail.toLowerCase().trim();
+      final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final docRef = record.id.isNotEmpty
+          ? _screeningsRef.doc(record.id)
+          : _screeningsRef.doc();
 
-    await docRef.set({
-      'id': docRef.id,
-      'user_email': cleanEmail,
-      'user_name': record.userName,
-      'title': record.title,
-      'date': record.date,
-      'score': record.score,
-      'color': record.color.toARGB32(),
-      'bg': record.bg.toARGB32(),
-      'image': record.image,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+      await docRef.set({
+        'id': docRef.id,
+        'userId': currentUid,
+        'user_id': currentUid,
+        'user_email': cleanEmail,
+        'user_name': record.userName,
+        'title': record.title,
+        'date': record.date,
+        'score': record.score,
+        'color': record.color.toARGB32(),
+        'bg': record.bg.toARGB32(),
+        'image': record.image,
+        'answers': record.answers,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Error saving screening record to Firebase: $e');
+    }
   }
 
   /// Ambil seluruh riwayat skrining user tertentu dari Cloud Firestore
@@ -95,6 +105,11 @@ class FirebaseScreeningService {
     final colorInt = data['color'] as int?;
     final bgInt = data['bg'] as int?;
     final image = data['image'] as String? ?? 'assets/images/senang.png';
+    final rawAnswers = data['answers'] as List?;
+    final answersList = rawAnswers != null
+        ? List<Map<String, dynamic>>.from(
+            rawAnswers.map((x) => Map<String, dynamic>.from(x as Map)))
+        : <Map<String, dynamic>>[];
 
     return ScreeningRecord(
       id: docId,
@@ -106,6 +121,7 @@ class FirebaseScreeningService {
       color: colorInt != null ? Color(colorInt) : AppColors.secondary,
       bg: bgInt != null ? Color(bgInt) : AppColors.secondaryContainer,
       image: image,
+      answers: answersList,
     );
   }
 }

@@ -7,6 +7,14 @@ import 'package:mindcare/services/app_state_service.dart';
 import 'package:mindcare/services/pdf_report_service.dart';
 import 'package:mindcare/views/detail_hasil_screening_screen.dart';
 
+/// ============================================================================
+/// 📈 LAYAR RIWAYAT SKRINING & TREN KESEHATAN MENTAL ([HistoryScreen])
+/// ============================================================================
+/// Layar ini berfungsi sebagai pusat pemantauan perkembangan kesehatan emosional pengguna:
+/// 1. Tampilan Grafik Tren Kesehatan Mental (`CustomPainter` dinamis berbasis waktu & skor).
+/// 2. Analisis & Insight Perkembangan Emosional (Perbandingan skor tes pertama & terbaru).
+/// 3. Daftar Riwayat Lengkap Evaluasi DASS-21 (Lihat Detail & Hapus Catatan).
+/// 4. Ekspor Laporan Resmi Kesehatan Mental dalam Format Dokumen PDF (`PdfReportService`).
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -15,13 +23,22 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  /// Filter rentang waktu yang sedang dipilih ('Semua Riwayat', '30 Hari', '7 Hari', '3 Bulan')
   String _selectedFilter = 'Semua Riwayat';
+
+  /// Status apakah dokumen laporan PDF sedang dalam proses pembuatan
   bool _isGeneratingPdf = false;
 
+  /// --------------------------------------------------------------------------
+  /// 📄 FUNGSI EKSPOR LAPORAN KESEHATAN MENTAL DOKUMEN PDF (_exportPdfReport)
+  /// --------------------------------------------------------------------------
+  /// Mengompilasi profil pengguna dan seluruh riwayat skrining DASS-21 dari database
+  /// menjadi dokumen PDF resmi berstandar medis, lalu membuka cetak/preview bawaan HP.
   Future<void> _exportPdfReport() async {
     final user = AppStateService.instance.userProfile;
     final screeningHistory = AppStateService.instance.screeningHistory;
 
+    // Validasi: Jika belum ada data skrining, tampilkan peringatan
     if (screeningHistory.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -37,14 +54,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
     setState(() => _isGeneratingPdf = true);
 
     try {
+      // 1. Generate byte dokumen PDF via PdfReportService
       final pdfBytes = await PdfReportService.generateScreeningReport(
         user: user,
         records: screeningHistory,
       );
 
+      // 2. Format nama file PDF yang rapi (mengabaikan karakter khusus)
       final cleanName = user.name.replaceAll(RegExp(r'[^\w\s]+'), '').replaceAll(' ', '_');
       final pdfName = 'MindCare_Laporan_${cleanName.isEmpty ? "User" : cleanName}.pdf';
 
+      // 3. Buka dialog pratinjau cetak PDF bawaan perangkat (iOS / Android / Desktop)
       await Printing.layoutPdf(
         onLayout: (format) async => pdfBytes,
         name: pdfName,
@@ -65,10 +85,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  /// --------------------------------------------------------------------------
+  /// 🗑️ DIALOG KONFIRMASI HAPUS RIWAYAT SKRINING (_deleteHistory)
+  /// --------------------------------------------------------------------------
+  /// Menampilkan modal dialog konfirmasi sebelum menghapus riwayat skrining dari SQLite & Firestore.
+  /// Menutup dialog modal terlebih dahulu sebelum meng-update state agar navigasi UI tetap aman.
   void _deleteHistory(ScreeningRecord record) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceCard,
           shape: RoundedRectangleBorder(
@@ -87,7 +112,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: Text(
                 'Batal',
                 style: GoogleFonts.plusJakartaSans(
@@ -97,21 +122,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final nav = Navigator.of(context);
-                final messenger = ScaffoldMessenger.of(context);
+                // 1. Pop dialog konfirmasi terlebih dahulu agar tidak menepis route utama
+                Navigator.pop(dialogContext);
+
+                // 2. Hapus data dari state & database lokal/cloud
                 await AppStateService.instance.deleteScreeningRecordById(
                   record.id,
                 );
-                nav.pop();
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Riwayat skrining dan grafik berhasil diperbarui.',
-                    ),
-                  ),
-                );
-              },
 
+                // 3. Tampilkan pesan SnackBar pemberitahuan sukses
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Riwayat skrining dan grafik berhasil diperbarui.',
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: Colors.white,
@@ -127,6 +157,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  /// Helper internal untuk memotong format tanggal teks di bawah grafik agar tidak meluap
   String _formatShortDate(String rawDate) {
     if (rawDate.toLowerCase().contains('hari ini')) return 'Hari Ini';
     if (rawDate.toLowerCase().contains('kemarin')) return 'Kemarin';
@@ -150,10 +181,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                // 1. Top AppBar
+                // 1. Top Bar Header dengan Tombol Cetak PDF
                 _buildAppBar(),
 
-                // 2. Scrollable Body
+                // 2. Scrollable Body Tampilan Riwayat & Grafik
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
@@ -163,19 +194,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Text
+                        // Nama Pengguna Aktif
                         _buildHeaderText(user),
                         const SizedBox(height: 16),
 
-                        // Time Filter Chips
+                        // Chip Filter Rentang Waktu
                         _buildFilterChips(),
                         const SizedBox(height: 20),
 
-                        // Trend Line Chart Card (Dynamically rendered from real data)
+                        // Card Grafik Tren Kesehatan Mental (Render Dinamis Real-Time)
                         _buildProgressChartCard(screeningHistory),
                         const SizedBox(height: 24),
 
-                        // History Records List Section
+                        // Sub-judul Daftar Riwayat Terbaru
                         Text(
                           'Riwayat Terbaru',
                           style: GoogleFonts.plusJakartaSans(
@@ -186,6 +217,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                         const SizedBox(height: 12),
 
+                        // Daftar Kartu Riwayat Skrining (Tampil State Kosong / List)
                         if (screeningHistory.isEmpty)
                           _buildEmptyState(user)
                         else
@@ -224,6 +256,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               color: AppColors.primary,
             ),
           ),
+          // Tombol Cetak Dokumen Laporan PDF
           ElevatedButton.icon(
             onPressed: _isGeneratingPdf ? null : _exportPdfReport,
             icon: _isGeneratingPdf
@@ -262,7 +295,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-
   // --- Header Text ---
   Widget _buildHeaderText(UserProfile user) {
     return Column(
@@ -277,13 +309,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        // Text(
-        //   'Catatan riwayat evaluasi kesehatan mental akun (${user.email}).',
-        //   style: GoogleFonts.plusJakartaSans(
-        //     fontSize: 13,
-        //     color: AppColors.onSurfaceVariant,
-        //   ),
-        // ),
       ],
     );
   }
@@ -342,9 +367,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // --- Progress Chart Card (Real-Time Reactive to History Updates) ---
+  /// --------------------------------------------------------------------------
+  /// 📊 KARTU WIDGET GRAFIK TREN KESEHATAN MENTAL (_buildProgressChartCard)
+  /// --------------------------------------------------------------------------
+  /// Membungkus lukisan `CustomPainter` grafik kurva tren emosional pengguna:
+  /// - Jika 0 data: Tampil pesan "Belum ada data grafik".
+  /// - Jika 1 data: Tampil 1 titik koordinat hijau di grafik.
+  /// - Jika >= 2 data: Tampil garis kurva tren melengkung halus (*smooth Bezier curve*).
   Widget _buildProgressChartCard(List<ScreeningRecord> rawRecords) {
-    // Chronological order for timeline chart: oldest on left, newest on right
+    // Urutkan kronologis dari tes terlama (kiri) ke tes terbaru (kanan) untuk grafik timeline
     final chronological = rawRecords.reversed.toList();
 
     return Container(
@@ -421,7 +452,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             )
           else ...[
-            // Dynamic Trend Chart
+            // Canvas Lukisan Grafik Tren Dinamis
             SizedBox(
               height: 140,
               width: double.infinity,
@@ -433,7 +464,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(height: 10),
 
-            // Real Date Labels Row
+            // Baris Label Tanggal di Bawah Grafik
             Row(
               mainAxisAlignment: chronological.length == 1
                   ? MainAxisAlignment.center
@@ -453,13 +484,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
           const SizedBox(height: 16),
 
-          // Dynamic Trend Growth Insight Callout
+          // Pesan Analisis & Insight Kestabilan Emosi Pengguna
           _buildInsightCallout(chronological),
         ],
       ),
     );
   }
 
+  /// --------------------------------------------------------------------------
+  /// 💡 WIDGET PESAN ANALISIS & INSIGHT PERKEMBANGAN (_buildInsightCallout)
+  /// --------------------------------------------------------------------------
+  /// Menghitung selisih poin antara tes pertama dan tes terbaru untuk memberikan
+  /// feedback psikologis (misal: "Tingkat kestabilan mentalmu meningkat +5 poin").
   Widget _buildInsightCallout(List<ScreeningRecord> chronological) {
     if (chronological.isEmpty) {
       return Container(
@@ -610,7 +646,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // --- History Card ---
+  /// --------------------------------------------------------------------------
+  /// 🎴 WIDGET KARTU ITEM RIWAYAT SKRINING (_buildHistoryCard)
+  /// --------------------------------------------------------------------------
+  /// Menampilkan judul diagnosis, skor, tanggal tes, serta tombol "Lihat Detail" & "Hapus".
   Widget _buildHistoryCard(ScreeningRecord item, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14.0),
@@ -714,7 +753,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Action buttons
+          // Tombol Aksi: Lihat Detail Hasil & Tombol Hapus
           Row(
             children: [
               Expanded(
@@ -770,7 +809,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // --- Empty State ---
+  // --- State Kosong (Belum ada Riwayat) ---
   Widget _buildEmptyState(UserProfile user) {
     return Center(
       child: Padding(
@@ -808,7 +847,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-// --- Dynamic Real-Time Mental Health Trend Line Painter ---
+/// ============================================================================
+/// 🎨 CUSTOM PAINTER GRAFIK KURVA TREN KESEHATAN MENTAL ([_DynamicMentalHealthTrendPainter])
+/// ============================================================================
+/// Menggambar grafik garis dinamis berbasis Canvas 2D Flutter:
+/// 1. Garis Panduan Level Grid (Tinggi, Sedang, Rendah).
+/// 2. Perhitungan Titik Koordinat Dinamis (Kiri: Tes Terlama -> Kanan: Tes Terbaru).
+/// 3. Lukisan Kurva Melengkung Halus (*Cubic Bezier Curve*) & Warna Gradien Area di Bawah Garis.
+/// 4. Lingkaran Titik Data Berwarna Sesuai Kategori Skor Emosional Pengguna.
 class _DynamicMentalHealthTrendPainter extends CustomPainter {
   final List<ScreeningRecord> records;
 
@@ -819,7 +865,7 @@ class _DynamicMentalHealthTrendPainter extends CustomPainter {
     final double w = size.width;
     final double h = size.height;
 
-    // 1. Grid Guidelines for levels (High, Moderate, Low)
+    // 1. Gambar Garis Panduan Horizontal Grid (Grid Guidelines)
     final gridPaint = Paint()
       ..color = AppColors.outlineVariant.withValues(alpha: 0.25)
       ..strokeWidth = 1
@@ -831,10 +877,11 @@ class _DynamicMentalHealthTrendPainter extends CustomPainter {
 
     if (records.isEmpty) return;
 
-    // 2. Calculate dynamic plot points from real records
+    // 2. Hitung Titik-Titik Koordinat (Points) dari Data Skor Skrining
     final List<Offset> points = [];
     for (int i = 0; i < records.length; i++) {
       final rec = records[i];
+      // Jika 1 tes: letakkan di tengah canvas (w * 0.5). Jika >= 2 tes: bagi secara merata di lebar canvas (w)
       final double x = records.length == 1
           ? w * 0.5
           : (i / (records.length - 1)) * w;
@@ -843,8 +890,8 @@ class _DynamicMentalHealthTrendPainter extends CustomPainter {
       points.add(Offset(x, y));
     }
 
+    // Jika HANYA 1 tes tersimpan: Gambar 1 titik lingkaran tunggal
     if (points.length == 1) {
-      // Single Point Display
       final pt = points.first;
       final pointPaint = Paint()..color = records.first.color;
       final borderPaint = Paint()
@@ -857,7 +904,7 @@ class _DynamicMentalHealthTrendPainter extends CustomPainter {
       return;
     }
 
-    // 3. Smooth Curve Path Generation
+    // 3. Buat Garis Kurva Melengkung Halus (Smooth Cubic Bezier Curve)
     final path = Path();
     path.moveTo(points.first.dx, points.first.dy);
 
@@ -876,7 +923,7 @@ class _DynamicMentalHealthTrendPainter extends CustomPainter {
       );
     }
 
-    // 4. Gradient Fill under the trend curve
+    // 4. Gambar Warna Gradien Transparan di Bawah Garis Kurva
     final fillPath = Path.from(path)
       ..lineTo(points.last.dx, h)
       ..lineTo(points.first.dx, h)
@@ -894,7 +941,7 @@ class _DynamicMentalHealthTrendPainter extends CustomPainter {
 
     canvas.drawPath(fillPath, fillPaint);
 
-    // 5. Line Stroke
+    // 5. Gambar Garis Kurva Utama (Stroke Line)
     final linePaint = Paint()
       ..color = AppColors.secondary
       ..strokeWidth = 3.0
@@ -903,7 +950,7 @@ class _DynamicMentalHealthTrendPainter extends CustomPainter {
 
     canvas.drawPath(path, linePaint);
 
-    // 6. Data Points Circles with dynamic color matching record score
+    // 6. Gambar Lingkaran Titik Data (Data Point Dots)
     for (int i = 0; i < points.length; i++) {
       final pt = points[i];
       final rec = records[i];

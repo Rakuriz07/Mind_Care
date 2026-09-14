@@ -28,32 +28,67 @@ service cloud.firestore {
     }
 
     // 2. Koleksi Skrining Kesehatan Mental (screenings)
-    // Pengguna hanya dapat membaca, membuat, dan menghapus riwayat skrining miliknya sendiri
+    // Pengguna terautentikasi dapat mengelola riwayat skrining berdasarkan userId / email
     match /screenings/{screeningId} {
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && (
+        !('userId' in resource.data) ||
+        resource.data.userId == request.auth.uid ||
+        resource.data.user_email == request.auth.token.email ||
+        resource.data.user_email == request.auth.email
+      );
+      allow create: if isAuthenticated() && (
+        !('userId' in request.resource.data) ||
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.user_email == request.auth.token.email ||
+        request.resource.data.user_email == request.auth.email
+      );
     }
 
     // 3. Koleksi Jurnal Emosi Harian (journals)
     // Privasi tingkat tinggi: Jurnal pribadi hanya dapat diakses oleh pemiliknya sendiri
     match /journals/{journalId} {
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && (
+        !('userId' in resource.data) ||
+        resource.data.userId == request.auth.uid ||
+        resource.data.user_email == request.auth.token.email ||
+        resource.data.user_email == request.auth.email
+      );
+      allow create: if isAuthenticated() && (
+        !('userId' in request.resource.data) ||
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.user_email == request.auth.token.email ||
+        request.resource.data.user_email == request.auth.email
+      );
     }
 
     // 4. Koleksi Komunitas (community_posts)
-    // Postingan dapat dibaca oleh seluruh pengguna login, tetapi hanya pembuat yang dapat menghapus postingannya
+    // Postingan dapat dibaca oleh seluruh pengguna login, pembuat dapat mengunggah & menghapus
     match /community_posts/{postId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      allow create: if isAuthenticated() && (
+        !('authorId' in request.resource.data) ||
+        request.resource.data.authorId == request.auth.uid ||
+        request.resource.data.authorEmail == request.auth.email ||
+        request.resource.data.authorEmail == request.auth.token.email
+      );
       allow update: if isAuthenticated(); // Mengizinkan fitur Suka (Likes) & Komentar dari pengguna lain
-      allow delete: if isAuthenticated() && resource.data.authorId == request.auth.uid;
+      allow delete: if isAuthenticated() && (
+        !('authorId' in resource.data) ||
+        resource.data.authorId == request.auth.uid ||
+        resource.data.authorEmail == request.auth.email ||
+        resource.data.authorEmail == request.auth.token.email
+      );
     }
 
     // 5. Koleksi Notifikasi (notifications)
-    // Pengguna hanya dapat membaca dan memperbarui notifikasi miliknya sendiri
+    // Pengguna terautentikasi dapat membaca & mengelola notifikasi miliknya sendiri
     match /notifications/{notificationId} {
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && (
+        !('userId' in resource.data) ||
+        resource.data.userId == request.auth.uid ||
+        resource.data.recipientEmail == request.auth.email ||
+        resource.data.recipientEmail == request.auth.token.email
+      );
       allow create: if isAuthenticated();
     }
   }

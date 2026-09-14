@@ -5,15 +5,31 @@ import 'package:mindcare/database/db_helper.dart';
 import 'package:mindcare/models/app_models.dart';
 import 'package:mindcare/services/app_state_service.dart';
 
+/// ============================================================================
+/// SCREENING CONTROLLER (Pengontrol Alur Kuesioner Skrining DASS-21)
+/// ----------------------------------------------------------------------------
+/// KEGUNAAN & FUNGSI:
+/// Controller ini mengelola State & Logika Kuesioner Skrining Kesehatan Mental:
+/// 1. Mengacak / Menyajikan 21 Pertanyaan Emas DASS-21 secara bertahap.
+/// 2. Mengingat Jawaban yang dipilih pengguna untuk tiap pertanyaan (`_answers`).
+/// 3. Menghitung Skor Kebugaran Mental (Wellness Score) Skala 25 - 95.
+/// 4. Mengelompokkan Kategori Klinis (Sangat Baik, Kecemasan Ringan, Sedang Lelah, Stres Tinggi).
+/// 5. Menyimpan Hasil Lengkap (termasuk rincian pertanyaan & jawaban) ke SQLite & Cloud Firestore.
+/// ============================================================================
 class ScreeningController extends ChangeNotifier {
+  // Singleton Pattern: Memastikan state pengisian kuesioner konsisten di seluruh aplikasi.
   static final ScreeningController _instance = ScreeningController._internal();
   static ScreeningController get instance => _instance;
 
   ScreeningController._internal();
 
+  // Indeks pertanyaan yang sedang ditampilkan saat ini (dimulai dari 0)
   int _currentQuestionIndex = 0;
+  
+  // Map untuk menyimpan pasangan: (Indeks Pertanyaan -> Indeks Opsi Jawaban)
   final Map<int, int> _answers = {};
 
+  // GETTER STATE KUESIONER
   int get currentQuestionIndex => _currentQuestionIndex;
   int get answeredCount => _answers.length;
   List<String> get questions => ScreeningData.questions;
@@ -28,23 +44,31 @@ class ScreeningController extends ChangeNotifier {
       _answers.containsKey(_currentQuestionIndex);
   int? get currentSelectedOptionIndex => _answers[_currentQuestionIndex];
 
-  // --- [READ] Membaca riwayat skrining user ---
+  // --- [READ] Membaca riwayat skrining pengguna dari AppStateService ---
   List<ScreeningRecord> get screeningHistory =>
       AppStateService.instance.screeningHistory;
 
-  // --- [READ] Membaca skor skrining terbaru ---
+  // --- [READ] Membaca skor skrining paling baru ---
   int get latestScore => AppStateService.instance.latestScreeningScore;
 
-  /// Select an option for current question
+  /// ==========================================================================
+  /// 1. MEMILIH OPSI JAWABAN (SELECT OPTION)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Menyimpan jawaban pilihan pengguna pada pertanyaan aktif saat ini.
+  /// ==========================================================================
   void selectOption(int optionIndex) {
     _answers[_currentQuestionIndex] = optionIndex;
-    notifyListeners();
+    notifyListeners(); // Memperbarui tampilan UI kuesioner secara langsung
   }
 
-  /// Move to next question if current is answered
+  /// ==========================================================================
+  /// 2. PINDAH KE PERTANYAAN BENDA BERIKUTNYA (NEXT QUESTION)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Berpindah ke pertanyaan nomor berikutnya jika pertanyaan saat ini sudah dijawab.
+  /// ==========================================================================
   bool nextQuestion() {
     if (!isCurrentQuestionAnswered) {
-      return false;
+      return false; // Jangan izinkan lanjut jika belum dijawab
     }
     if (_currentQuestionIndex < totalQuestions - 1) {
       _currentQuestionIndex++;
@@ -54,7 +78,11 @@ class ScreeningController extends ChangeNotifier {
     return true;
   }
 
-  /// Move to previous question
+  /// ==========================================================================
+  /// 3. KEMBALI KE PERTANYAAN SEBELUMNYA (PREVIOUS QUESTION)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Memungkinkan pengguna meninjau atau mengubah jawaban pertanyaan sebelumnya.
+  /// ==========================================================================
   void previousQuestion() {
     if (_currentQuestionIndex > 0) {
       _currentQuestionIndex--;
@@ -62,14 +90,23 @@ class ScreeningController extends ChangeNotifier {
     }
   }
 
-  /// Reset current screening questionnaire state
+  /// ==========================================================================
+  /// 4. RESET STATE SKRINING (RESET)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Membersihkan seluruh jawaban dan mengembalikan indeks ke awal saat memulai ulang.
+  /// ==========================================================================
   void resetScreening() {
     _currentQuestionIndex = 0;
     _answers.clear();
     notifyListeners();
   }
 
-  /// Calculate total score normalized to wellness scale (25 - 95)
+  /// ==========================================================================
+  /// 5. MENGHITUNG SKOR KELUARAN SKRINING (CALCULATE WELLNESS SCORE)
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Menghitung total bobot nilai DASS-21 dan mengkonversinya ke dalam
+  /// skala persentase kebugaran mental (25 - 95).
+  /// ==========================================================================
   int calculateScore() {
     if (_answers.isEmpty) return 85;
     final totalRawPoints = _answers.entries.fold(0, (sum, entry) {
@@ -80,14 +117,19 @@ class ScreeningController extends ChangeNotifier {
       return sum + scoreVal;
     });
 
-    final maxPossible = totalQuestions * 3; // Scale 0-3 per question
+    final maxPossible = totalQuestions * 3; // Skala nilai 0-3 per soal DASS-21
     final wellnessScore = (100 - ((totalRawPoints / maxPossible) * 75))
         .round()
         .clamp(25, 95);
     return wellnessScore;
   }
 
-  // --- [CREATE] Menyelesaikan skrining dan menyimpan hasilnya ---
+  /// ==========================================================================
+  /// 6. MENYELESAIKAN SKRINING & MENYIMPAN HASIL LENGKAP
+  /// --------------------------------------------------------------------------
+  /// Kegunaan: Mengelompokkan status tingkat kesehatan emosional, menyusun array jawaban,
+  /// serta mengirimnya ke AppStateService (SQLite & Cloud Firestore).
+  /// ==========================================================================
   Future<ScreeningRecord> completeScreening() async {
     final finalScore = calculateScore();
     final now = DateTime.now();
@@ -99,6 +141,7 @@ class ScreeningController extends ChangeNotifier {
     Color bg;
     String imageUrl;
 
+    // Klasifikasi Tingkat Kesehatan Mental berdasarkan Wellness Score
     if (finalScore >= 75) {
       title = 'Sangat Baik';
       color = AppColors.secondary;
@@ -121,6 +164,22 @@ class ScreeningController extends ChangeNotifier {
       imageUrl = 'assets/images/STRESS.png';
     }
 
+    // Menyusun rincian pertanyaan & opsi jawaban yang dipilih pengguna
+    final List<Map<String, dynamic>> answersList = [];
+    for (int i = 0; i < questions.length; i++) {
+      final selectedOptionIndex = _answers[i];
+      if (selectedOptionIndex != null && selectedOptionIndex < options.length) {
+        final option = options[selectedOptionIndex];
+        answersList.add({
+          'question_number': i + 1,
+          'question_text': questions[i],
+          'selected_option': option.text,
+          'option_score': option.score,
+        });
+      }
+    }
+
+    // Membuat objek model ScreeningRecord baru
     final record = ScreeningRecord(
       id: 'scr_${now.millisecondsSinceEpoch}',
       userEmail: AppStateService.instance.userProfile.email,
@@ -131,10 +190,13 @@ class ScreeningController extends ChangeNotifier {
       color: color,
       bg: bg,
       image: imageUrl,
+      answers: answersList,
     );
 
+    // Simpan ke State Utama (otomatis sync ke SQLite & Firestore Cloud)
     AppStateService.instance.addScreeningRecord(record);
 
+    // Simpan tambahan ke database lokal SQLite
     await DbHelper.instance.insertScreening({
       'id': record.id,
       'user_email': record.userEmail,

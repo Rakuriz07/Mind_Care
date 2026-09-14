@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mindcare/constants/app_colors.dart';
 import 'package:mindcare/services/app_state_service.dart';
+import 'package:mindcare/services/firebase_auth_service.dart';
 import 'package:mindcare/views/tips_pola_makan_screen.dart';
 import 'package:mindcare/views/meditasi_tidur_screen.dart';
 import 'package:mindcare/views/game_relaksasi_screen.dart';
@@ -12,10 +13,18 @@ import 'package:mindcare/views/daftar_jurnal_screen.dart';
 import 'package:mindcare/views/screening_screen.dart';
 import 'package:mindcare/views/history_screen.dart';
 import 'package:mindcare/views/community/community_screen.dart';
+import 'package:mindcare/views/ai_chat_screen.dart';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:mindcare/services/local_notification_service.dart';
 
+/// ============================================================================
+/// 🏠 LAYAR DASHBOARD UTAMA MINDCARE ([HomeScreen])
+/// ============================================================================
+/// Berada di pusat aplikasi sebagai hub utama navigasi:
+/// 1. Ringkasan Kebugaran Emosional Hari Ini (skor DASS-21).
+/// 2. Akses Cepat fitur Skrining, Jurnal, Komunitas, AI Chat, & Relaksasi.
+/// 3. Sistem Alarm Bangun Pagi Presisi Tinggi (Exact Alarm) dengan pilihan audio menenangkan.
 class HomeScreen extends StatefulWidget {
   final bool isRootTab;
   final ValueChanged<int>? onSelectTab;
@@ -27,11 +36,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// Indeks tab navigasi bawah yang sedang aktif
   int _selectedNavIndex = 0;
+
+  /// Jam alarm bangun pagi (Default 06:00 WIB)
   TimeOfDay _alarmTime = const TimeOfDay(hour: 6, minute: 0);
-  bool _isAlarmEnabled = true;
+
+  /// Status apakah alarm bangun pagi sedang diaktifkan
+  bool _isAlarmEnabled = false;
+
+  /// Pilihan variasi nada suara alarm ('segar', 'senang', 'up', 'standard')
   String _selectedAlarmSound = 'segar';
 
+  /// Daftar opsi nada suara alarm bangun pagi
   final List<Map<String, dynamic>> _alarmSoundOptions = const [
     {
       'id': 'segar',
@@ -98,10 +115,28 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadSavedAlarmSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final hour = prefs.getInt('wakeup_alarm_hour') ?? 6;
-      final minute = prefs.getInt('wakeup_alarm_minute') ?? 0;
-      final enabled = prefs.getBool('wakeup_alarm_enabled') ?? true;
-      final sound = prefs.getString('wakeup_alarm_sound') ?? 'segar';
+      int hour = prefs.getInt('wakeup_alarm_hour') ?? 6;
+      int minute = prefs.getInt('wakeup_alarm_minute') ?? 0;
+      bool enabled = prefs.getBool('wakeup_alarm_enabled') ?? false;
+      String sound = prefs.getString('wakeup_alarm_sound') ?? 'segar';
+
+      // Sinkronisasi ambil setelan alarm dari Cloud Firestore jika tersedia
+      final currentUserEmail = AppStateService.instance.userProfile.email;
+      if (currentUserEmail.isNotEmpty) {
+        final cloudPrefs = await FirebaseAuthService()
+            .getAlarmPreferencesFromFirestore(currentUserEmail);
+        if (cloudPrefs != null) {
+          hour = cloudPrefs['hour'] as int? ?? hour;
+          minute = cloudPrefs['minute'] as int? ?? minute;
+          enabled = cloudPrefs['enabled'] as bool? ?? enabled;
+          sound = cloudPrefs['sound'] as String? ?? sound;
+
+          await prefs.setInt('wakeup_alarm_hour', hour);
+          await prefs.setInt('wakeup_alarm_minute', minute);
+          await prefs.setBool('wakeup_alarm_enabled', enabled);
+          await prefs.setString('wakeup_alarm_sound', sound);
+        }
+      }
 
       if (mounted) {
         setState(() {
@@ -121,6 +156,19 @@ class _HomeScreenState extends State<HomeScreen> {
       await prefs.setInt('wakeup_alarm_minute', _alarmTime.minute);
       await prefs.setBool('wakeup_alarm_enabled', _isAlarmEnabled);
       await prefs.setString('wakeup_alarm_sound', _selectedAlarmSound);
+
+      // Unggah setelan alarm terbaru ke Cloud Firestore
+      final currentUserEmail = AppStateService.instance.userProfile.email;
+      if (currentUserEmail.isNotEmpty) {
+        FirebaseAuthService().saveAlarmPreferencesInFirestore(
+          email: currentUserEmail,
+          hour: _alarmTime.hour,
+          minute: _alarmTime.minute,
+          enabled: _isAlarmEnabled,
+          sound: _selectedAlarmSound,
+        );
+      }
+
       await _scheduleMorningNotification();
     } catch (_) {}
   }
@@ -454,7 +502,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       _buildDailyJournalSection(),
                       const SizedBox(height: 24),
 
-                      // 5. Rekomendasi Fitur (Game Relaksasi & Tips Pola Makan)
+                      // 5. FEATURE: Tanya MindCare AI
+                      _buildAiAssistantCard(),
+                      const SizedBox(height: 24),
+
+                      // 6. Rekomendasi Fitur (Game Relaksasi & Tips Pola Makan)
                       _buildRecommendationsSection(),
                     ],
                   ),
@@ -476,6 +528,125 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildAiAssistantCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.skyBlueAccent,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Tanya MindCare AI',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Gemini 1.5',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Sahabat virtual untuk curhat ringan & solusi nutrisi emosional.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AiChatScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.primary,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: Text(
+              'Tanya AI',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _getTimeBasedGreeting() {
     final hour = DateTime.now().hour;
     if (hour >= 4 && hour < 11) {
@@ -489,6 +660,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// --------------------------------------------------------------------------
+  /// 😄 HELPER KONVERSI EMOTICON MOOD (_getMoodEmoji)
+  /// --------------------------------------------------------------------------
+  /// Mengonversi teks kategori emosi pengguna ('Sangat Sedih', 'Sedih', 'Biasa Saja', 'Senang')
+  /// menjadi simbol emoji visual yang merepresentasikan perasaan pengguna.
   String _getMoodEmoji(String mood) {
     switch (mood) {
       case 'Sangat Sedih':
@@ -504,6 +680,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// --------------------------------------------------------------------------
+  /// 👤 HELPER FORMAT NAMA SALAM PENGGUNA (_formatGreetingName)
+  /// --------------------------------------------------------------------------
+  /// Memotong nama pengguna jika melebihi 16 karakter (menambahkan '...')
+  /// agar tampilan header salam "Selamat Pagi/Siang/Malam" tetap rapi dan tidak meluap (overflow).
   String _formatGreetingName(String fullName) {
     final cleanName = fullName.trim();
     if (cleanName.isEmpty) return 'Pengguna';
@@ -513,7 +694,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return cleanName;
   }
 
-  // --- Header Widget ---
+  /// --------------------------------------------------------------------------
+  /// 🏆 WIDGET HEADER DASHBOARD UTAMA (_buildHeader)
+  /// --------------------------------------------------------------------------
+  /// Menyusun baris bagian atas layar utama:
+  /// 1. Foto Avatar Profil Pengguna (Mendukung memori bytes, file galeri, asset lokal, atau URL network).
+  /// 2. Teks Ucapan Selamat Datang ("Halo, [Nama Pengguna] 👋").
+  /// 3. Lencana Peran ("Pasien" / "Teman MindCare" / "Psikolog").
   Widget _buildHeader() {
     final profile = AppStateService.instance.userProfile;
     return Row(

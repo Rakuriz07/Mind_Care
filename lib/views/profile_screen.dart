@@ -41,8 +41,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   final List<Map<String, String>> _availableAvatars = [
     {'title': 'Karakter Senang ✨', 'url': 'assets/images/senang.png'},
+    {'title': 'Logo MindCare 🌸', 'url': 'assets/icons/logo_mindcare.png'},
     {'title': 'Karakter Cemas 😟', 'url': 'assets/images/cemas.png'},
     {'title': 'Karakter Sedih 😢', 'url': 'assets/images/sedih.png'},
+    {'title': 'Icon Aplikasi 📱', 'url': 'assets/icons/app_icon.png'},
+    {'title': 'Karakter Relaksasi 🌿', 'url': 'assets/images/STRESS.png'},
   ];
 
   Future<bool> _pickImage(ImageSource source) async {
@@ -1075,7 +1078,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildAboutFeatureItem(Icons.verified_user_rounded, '100% Privasi'),
-                        _buildAboutFeatureItem(Icons.favorite_rounded, 'Dukungan Sebaya'),
+                        _buildAboutFeatureItem(Icons.favorite_rounded, 'Dukungan Teman'),
                         _buildAboutFeatureItem(Icons.fingerprint_rounded, 'Kunci Biometrik'),
                       ],
                     ),

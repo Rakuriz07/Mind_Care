@@ -7,6 +7,14 @@ import 'package:mindcare/services/app_state_service.dart';
 import 'package:mindcare/views/main_navigation_screen.dart';
 import 'package:mindcare/views/register_screen.dart';
 
+/// ============================================================================
+/// 🔑 LAYAR LOGIN APLIKASI MINDCARE ([LoginScreen])
+/// ============================================================================
+/// Menyediakan antarmuka otentikasi masuk pengguna:
+/// 1. Form Input Email & Password dengan verifikasi format teks.
+/// 2. Integrasi Login Firebase Auth & SSO Google Account 1-klik.
+/// 3. Fitur "Lupa Kata Sandi?" yang mengirimkan email reset password resmi dari Firebase.
+/// 4. Opsi Masuk Anonim / Mode Tamu tanpa pendaftaran.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,13 +23,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  /// Pengontrol teks input email
   final TextEditingController _emailController = TextEditingController();
+
+  /// Pengontrol teks input password
   final TextEditingController _passwordController = TextEditingController();
 
+  /// Layanan autentikasi Firebase SDK
   final FirebaseAuthService _authService = FirebaseAuthService();
+
+  /// Kunci validasi bentuk Form
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  /// Status visibilitas karakter password (tersembunyi / terlihat)
   bool _isPasswordVisible = false;
+
+  /// Indikator status loading proses login
   bool _isLoading = false;
 
   @override
@@ -31,7 +48,13 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// --------------------------------------------------------------------------
+  /// 🔐 FUNGSI PENANGANAN LOGIN EMAIL & PASSWORD (_handleLogin)
+  /// --------------------------------------------------------------------------
+  /// Memeriksa keabsahan email dan password, mengirimkan permintaan otentikasi
+  /// ke Firebase Auth, menyinkronkan profil ke [AppStateService], dan membuka MainNavigationScreen.
   Future<void> _handleLogin() async {
+
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
@@ -141,6 +164,152 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
       ),
+    );
+  }
+
+  void _showForgotPasswordDialog() {
+    final resetEmailController = TextEditingController(
+      text: _emailController.text.trim(),
+    );
+    bool isResetting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  const Icon(Icons.mark_email_read_rounded, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Reset Kata Sandi',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Masukkan alamat email terdaftar Anda. Tautan verifikasi reset kata sandi resmi dari Firebase akan langsung dikirim ke email Anda.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: resetEmailController,
+                    keyboardType: TextInputType.emailAddress,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'nama@email.com',
+                      labelText: 'Alamat Email',
+                      prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(
+                    'Batal',
+                    style: GoogleFonts.plusJakartaSans(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isResetting
+                      ? null
+                      : () async {
+                          final email = resetEmailController.text.trim();
+                          if (email.isEmpty || !email.contains('@')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Masukkan email yang valid!'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final messenger = ScaffoldMessenger.of(context);
+                          setDialogState(() => isResetting = true);
+                          try {
+                            await _authService.sendPasswordResetEmail(email);
+                            if (dialogContext.mounted) {
+                              Navigator.pop(dialogContext);
+                            }
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Tautan verifikasi reset kata sandi telah dikirim ke $email! Cek Inbox/Spam email Anda. 📧✨',
+                                ),
+                                backgroundColor: AppColors.secondary,
+                                duration: const Duration(seconds: 5),
+                              ),
+                            );
+                          } on FirebaseAuthException catch (e) {
+                            setDialogState(() => isResetting = false);
+                            String msg = 'Gagal mengirim email reset';
+                            if (e.code == 'user-not-found') {
+                              msg = 'Email tidak terdaftar di sistem';
+                            } else if (e.message != null) {
+                              msg = e.message!;
+                            }
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(msg),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          } catch (e) {
+                            setDialogState(() => isResetting = false);
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Gagal: $e'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: isResetting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'Kirim Tautan',
+                          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -306,14 +475,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Tautan pemulihan kata sandi telah dikirim ke email Anda.'),
-                    backgroundColor: AppColors.secondary,
-                  ),
-                );
-              },
+              onPressed: _showForgotPasswordDialog,
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: Size.zero,
